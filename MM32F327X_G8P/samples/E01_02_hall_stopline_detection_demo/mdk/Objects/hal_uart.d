@@ -1,0 +1,14 @@
+.\objects\hal_uart.o: ..\..\libraries\sdk\drivers\hal_uart.c
+.\objects\hal_uart.o: ..\..\libraries\sdk\drivers\hal_uart.h
+.\objects\hal_uart.o: ..\..\libraries\sdk\drivers\hal_common.h
+.\objects\hal_uart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+.\objects\hal_uart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
+.\objects\hal_uart.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+.\objects\hal_uart.o: ..\..\libraries\sdk\hal_device_registers.h
+.\objects\hal_uart.o: ..\..\libraries\sdk\mm32f3277g.h
+.\objects\hal_uart.o: ..\..\libraries\sdk\CMSIS\Include\core_cm3.h
+.\objects\hal_uart.o: ..\..\libraries\sdk\CMSIS\Include\cmsis_version.h
+.\objects\hal_uart.o: ..\..\libraries\sdk\CMSIS\Include\cmsis_compiler.h
+.\objects\hal_uart.o: ..\..\libraries\sdk\CMSIS\Include\cmsis_armcc.h
+.\objects\hal_uart.o: ..\..\libraries\sdk\mm32f3277g_features.h
+.\objects\hal_uart.o: ..\..\libraries\sdk\system_mm32f3277g.h
