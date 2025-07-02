@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "encoder.h"
 #define ips200_x_max 240
 #define ips200_y_max 320
 
@@ -6,6 +7,7 @@ int current_state=1;
 int p=0;//记录当前指针
 int p_nearby=0;//记录所属的指针
 int input;
+extern int status;
 
 typedef struct 
 {
@@ -18,22 +20,31 @@ typedef struct
     char int_float;
     void (*Operate_DOWN)();
     void (*Operate_UP)();
+    void (*Operate_default)();
 
 }MENU;
 
+void nfunc(void){
+    ips200_show_string(0,180,"nofunc");
 
-//菜单编写规范
+}
+
 MENU menu[]={
     {1,"pid",0,20,0,0,0},
-        {2,"p",ips200_x_max-10*6,20,0,0,1},
-        {2,"i",ips200_x_max-10*6,40,0,0,1},
-        {2,"d",ips200_x_max-10*6,60,0,0,1},
+        {2,"p"      ,ips200_x_max-10*7,20,0,0,1,                        nfunc,nfunc,nfunc},
+        {2,"i"      ,ips200_x_max-10*7,40,0,0,1,                        nfunc,nfunc,nfunc},
+        {2,"d"      ,ips200_x_max-10*7,60,0,0,1,                        nfunc,nfunc,nfunc},
+        {2,"i_max"  ,ips200_x_max-10*7,20,0,0,1,                        nfunc,nfunc,nfunc},
+        {2,"d_max"  ,ips200_x_max-10*7,40,0,0,1,                        nfunc,nfunc,nfunc},
+        {2,"output" ,ips200_x_max-10*7,60,0,0,1,                        nfunc,nfunc,nfunc},
     {1,"carstatue",0,40,0,0,0},
-        {2,"v_left",ips200_x_max-10*6,20,0,0,1},
-        {2,"v_right",ips200_x_max-10*6,40,0,0,1},
-        {2,"encoder_right",ips200_x_max-10*6,60,0,0,1},
-        {2,"encoder_left",ips200_x_max-10*6,80,0,0,1},
-        {2,"angle",ips200_x_max-10*6,100,0,0,0},           
+        {2,"v_left"         ,ips200_x_max-10*7,20,0,0,1,                nfunc,nfunc,nfunc},
+        {2,"v_right"        ,ips200_x_max -10*7,40,0,0,1,                nfunc,nfunc,nfunc},
+        {2,"encoder_right"  ,ips200_x_max-10*7,60,0,0,0,                nfunc,nfunc,nfunc},
+        {2,"encoder_left"   ,ips200_x_max-10*7,80,0,0,0,                nfunc,nfunc,nfunc},
+        {2,"angle"          ,ips200_x_max-10*7,100,0,0,0,               nfunc,nfunc,nfunc},
+        {2,"angle2"         ,ips200_x_max-10*7,120,0,0,0,               nfunc,nfunc,nfunc},
+    {1,"graph",0,60,0,0,0},
     {1,"end",0,0,0,0,0}//不可删去
 };
 
@@ -50,18 +61,59 @@ enum condition{
     
 
 
-//调试屏幕
-void IPS200_Show_Init(void)
+
+
+/*
+------------------------------------------------------------------------------------------------------------------
+函数简介    初始化屏幕 
+参数说明     无
+返回参数     无
+使用示例     直接调用
+备注信息     无
+-------------------------------------------------------------------------------------------------------------------
+*/
+void Menu_Screen_Init(void)
 {
     ips200_set_color(RGB565_WHITE, RGB565_BLACK);    //设置为白底黑字
     ips200_init(IPS200_TYPE_SPI);    //设置通信模式为SPI通信
 }
+/*
+------------------------------------------------------------------------------------------------------------------
+函数简介     导入数据，如pid，编码器，
+参数说明     无
+返回参数     无
+使用示例     直接调用
+备注信息     已加入左右编码器的数据
+-------------------------------------------------------------------------------------------------------------------
+*/
+void update(void)
+{
+    for(int i=0;strcmp(menu[i].str, "end") != 0;i++)
+        {
+            if(strcmp(menu[i].str, "encoder_right")==0)
+            {
+                menu[i].value_i=Encoder_GetInfo_R();
+            }
+            if(strcmp(menu[i].str, "encoder_left")==0)
+            {
+                menu[i].value_i=Encoder_GetInfo_L();
+            }
+        }
+}
 
 
-
-
+/*
+------------------------------------------------------------------------------------------------------------------
+函数简介     屏幕显示
+参数说明     无
+返回参数     无
+使用示例     直接调用
+备注信息     无
+-------------------------------------------------------------------------------------------------------------------
+*/
 void output(void) 
 {
+    update();
     int target_priority=current_state-1;
     if (target_priority==0)
     {
@@ -97,11 +149,11 @@ void output(void)
                     ips200_show_string(20,menu[i].y,menu[i].str);
                     if(menu[i].int_float)
                     {
-                       ips200_show_float(ips200_x_max-70,menu[i].y,menu[i].value_f,3,3);
+                       ips200_show_float(menu[i].x,menu[i].y,menu[i].value_f,3,3);
                     }
                     else
                     {
-                       ips200_show_int(ips200_x_max-70,menu[i].y,menu[i].value_i,5);
+                       ips200_show_int(menu[i].x,menu[i].y,menu[i].value_i,5);
                     }
                 }
                 else
@@ -109,11 +161,11 @@ void output(void)
                     ips200_show_string(20,menu[i].y,menu[i].str);
                     if(menu[i].int_float)
                     {
-                       ips200_show_float(ips200_x_max-70,menu[i].y,menu[i].value_f,3,3);
+                       ips200_show_float(menu[i].x,menu[i].y,menu[i].value_f,3,3);
                     }
                     else
                     {
-                        ips200_show_int(ips200_x_max-70,menu[i].y,menu[i].value_i,5);
+                        ips200_show_int(menu[i].x,menu[i].y,menu[i].value_i,5);
                     }
                 }
             } 
@@ -121,13 +173,25 @@ void output(void)
     }
 }
 
-
-//注：这里为了防止占用，将其写进一个TIM中断函数里备用。
+/*
+------------------------------------------------------------------------------------------------------------------
+函数简介     菜单控制
+参数说明     无
+返回参数     无
+使用示例     直接调用
+备注信息     
+-------------------------------------------------------------------------------------------------------------------
+*/
 void Menu_control(void)
 {
         output();
 //      scanf("%d", &input);等待修改
+        status=0;
         condition = (enum condition)input; 
+        if(input)
+        {
+            ips200_clear();
+        }
         switch (condition)
         {
             case NOACTION:
@@ -142,7 +206,7 @@ void Menu_control(void)
             }
             else
             {
-    ips200_show_string(0,180,"error");
+                ips200_show_string(0,180,"error");
             }
             break;
         case L:
@@ -154,10 +218,16 @@ void Menu_control(void)
             }
             else
             {
-    ips200_show_string(0,180,"error");
+                ips200_show_string(0,180,"error");
             }
              
 
+            break;
+        case UP:
+            menu[p].Operate_UP();
+            break;
+        case DOWN:
+            menu[p].Operate_DOWN();
             break;
         case CONFIRM:
             if(menu[p+1].priority==current_state+1&&strcmp(menu[p+1].str,"end")!=0)
@@ -168,7 +238,7 @@ void Menu_control(void)
             }
             else
             {
-    ips200_show_string(0,180,"error");
+                ips200_show_string(0,180,"error");
             }
          
 
@@ -183,12 +253,13 @@ void Menu_control(void)
                 p_nearby--;
             }
         }
-        
         else
         {
-ips200_show_string(0,180,"error");
+            ips200_show_string(0,180,"error");
         }
+
         default:
             break;
-    }
+        }
+        input=0;
 }

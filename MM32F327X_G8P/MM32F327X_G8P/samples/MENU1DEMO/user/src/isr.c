@@ -35,6 +35,24 @@
 
 #include "isr.h"
 
+extern uint32 key1_count;
+extern uint32 key2_count;
+extern uint32 key3_count;
+extern uint32 key4_count;
+extern uint32 key5_count;
+extern uint32 key6_count;
+extern uint8  key1_flag;
+extern uint8  key2_flag;
+extern uint8  key3_flag;
+extern uint8  key4_flag;
+extern uint8  key5_flag;
+extern uint8  key6_flag;
+extern uint32 count_time;
+extern int input;
+extern int status;
+extern int32 encoder1;
+extern int32 encoder2;
+
 //-------------------------------------------------------------------------------------------------------------------
 // 函数简介     TIM1 的定时器更新中断服务函数 启动 .s 文件定义 不允许修改函数名称
 //              默认优先级 修改优先级使用 interrupt_set_priority(TIM1_UP_IRQn, 1);
@@ -53,9 +71,77 @@ void TIM1_UP_IRQHandler (void)
 //-------------------------------------------------------------------------------------------------------------------
 void TIM2_IRQHandler (void)
 {
-    // 此处编写用户代码
+
+
+    if(key1_flag)
+	{
+        status=1;
+		key1_count++;
+		if(key1_count>count_time)
+		{
+			key1_count=0;
+			key1_flag=0;
+		}
+	}
+	if(key2_flag)
+	{
+        status=2;
+		key2_count++;
+		if(key2_count>count_time)
+		{
+			key2_count=0;
+			key2_flag=0;
+		}
+	}
+	if(key3_flag)
+	{
+        status=3;
+		key3_count++;
+		if(key3_count>count_time)
+		{
+			key3_count=0;
+			key3_flag=0;
+		}
+	}
+	if(key4_flag)
+	{
+        status=4;
+		key4_count++;
+		if(key4_count>count_time)
+		{
+			key4_count=0;
+			key4_flag=0;
+		}
+	}
+    if(key5_flag)
+    {
+        status=5;
+        key5_count++;
+
+        if(key5_count>count_time+50)
+        {
+            key5_count=0;
+            key5_flag=0;
+        }
+    }
+    if(key6_flag)
+    {
+        status=6;
+        key6_count++;
+        if(key6_count>count_time+50)
+        {
+            key6_count=0;
+            key6_flag=0;
+        }
+    }
+    if(key1_flag==0 &&key2_flag==0 &&key3_flag==0 &&key4_flag==0 &&key5_flag==0&&key6_flag==0)
+    {   
+        input=status;
+    }
+
 
     // 此处编写用户代码
+    
     TIM2->SR &= ~TIM2->SR;                                                      // 清空中断状态
 }
 
@@ -90,7 +176,10 @@ void TIM4_IRQHandler (void)
 void TIM5_IRQHandler (void)
 {
     // 此处编写用户代码
-
+	encoder1=encoder_get_count(TIM3_ENCODER);
+	encoder_clear_count(TIM3_ENCODER);
+	encoder2=encoder_get_count(TIM4_ENCODER);
+	encoder_clear_count(TIM4_ENCODER);
     // 此处编写用户代码
     TIM5->SR &= ~TIM5->SR;                                                      // 清空中断状态
 }

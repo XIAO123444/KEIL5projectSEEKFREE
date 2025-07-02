@@ -426,6 +426,36 @@
               <FileType>5</FileType>
               <FilePath>..\code\key.h</FilePath>
             </File>
+            <File>
+              <FileName>encoder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\encoder.c</FilePath>
+            </File>
+            <File>
+              <FileName>encoder.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\encoder.h</FilePath>
+            </File>
+            <File>
+              <FileName>pid_v.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\pid_v.c</FilePath>
+            </File>
+            <File>
+              <FileName>pid_v.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\pid_v.h</FilePath>
+            </File>
+            <File>
+              <FileName>photo_chuli.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\photo_chuli.c</FilePath>
+            </File>
+            <File>
+              <FileName>photo_chuli.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\photo_chuli.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

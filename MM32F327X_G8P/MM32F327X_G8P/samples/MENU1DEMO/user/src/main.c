@@ -74,31 +74,46 @@
 
 // **************************** 代码区域 ****************************
 #include "menu.h"
+#include "encoder.h"
+#include "key.h"
 
-
-#define IPS200_TYPE     (IPS200_TYPE_PARALLEL8)                                 // 双排排针 并口两寸屏 这里宏定义填写 IPS200_TYPE_PARALLEL8
-                                                                                // 单排排针 SPI 两寸屏 这里宏定义填写 IPS200_TYPE_SPI
 void all_init(void)
 {
-    clock_init(SYSTEM_CLOCK_120M);
-    debug_init();                                                               
+    clock_init(SYSTEM_CLOCK_120M);//必须最先开启时钟
+    debug_init(); 
     
-	system_delay_ms(300);
-    
-    IPS200_Show_Init();
+    Key_init();                     //按键初始化
+    Encoder_Init();                 //编码器初始化
 
+	system_delay_ms(300);           
+    Menu_Screen_Init();             //屏幕显示初始化
 }
 
 
 int main (void)
 {
     all_init();
+    flash_buffer_clear();                                                       // 清空缓冲区
+    flash_union_buffer[0].float_type  = 3.1415926;                              // 向缓冲区第 0 个位置写入 float  数据
+    flash_write_page_from_buffer(0, 0);        // 向指定 Flash 扇区的页码写入缓冲区数据
+	system_delay_ms(300);           
+    flash_buffer_clear();                                                  		// 清空缓冲区
+    flash_read_page_to_buffer(0, 0);           // 将数据从 flash 读取到缓冲区
+    
 
-    while(1)
-    {
-        output();
+//        flash_buffer_clear();                                                       // 清空缓冲区
+//        flash_union_buffer[0].float_type  = test;                              // 向缓冲区第 0 个位置写入 float  数据
+//        flash_write_page_from_buffer(0, 0);        // 向指定 Flash 扇区的页码写入缓冲区数据
+//        flash_buffer_clear();  
+//        flash_read_page_to_buffer(0, 0);           // 将数据从 flash 读取到缓冲区
+//        test=flash_union_buffer[0].float_type;
+    
 
-    }
+        ips200_show_float(0,20,flash_union_buffer[0].float_type,3,3);
+//        Key_Scan();
+//        Menu_control();
+        
+    
 }
 // **************************** 代码区域 ****************************
 
