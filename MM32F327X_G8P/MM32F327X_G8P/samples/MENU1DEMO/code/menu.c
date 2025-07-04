@@ -1,5 +1,12 @@
 #include "menu.h"
+#include "pid_v.h"
 #include "encoder.h"
+#include "key.h"
+#include "photo_chuli.h"
+
+
+
+
 #define ips200_x_max 240
 #define ips200_y_max 320
 
@@ -8,6 +15,9 @@ int p=0;//记录当前指针
 int p_nearby=0;//记录所属的指针
 int input;
 extern int status;
+extern uint16 w_step,h_step,K,limit;
+
+
 
 typedef struct 
 {
@@ -30,13 +40,13 @@ void nfunc(void){
 }
 
 MENU menu[]={
-    {1,"pid",0,20,0,0,0},
-        {2,"p"      ,ips200_x_max-10*7,20,0,0,1,                        nfunc,nfunc,nfunc},
-        {2,"i"      ,ips200_x_max-10*7,40,0,0,1,                        nfunc,nfunc,nfunc},
-        {2,"d"      ,ips200_x_max-10*7,60,0,0,1,                        nfunc,nfunc,nfunc},
-        {2,"i_max"  ,ips200_x_max-10*7,20,0,0,1,                        nfunc,nfunc,nfunc},
-        {2,"d_max"  ,ips200_x_max-10*7,40,0,0,1,                        nfunc,nfunc,nfunc},
-        {2,"output" ,ips200_x_max-10*7,60,0,0,1,                        nfunc,nfunc,nfunc},
+    {1,"pid_param",0,20,0,0,0},
+        {2,"p",      ips200_x_max-10 * 7, 20,  0,0,1,  pid_sub_p,           pid_add_p,          nfunc},  
+        {2,"i",      ips200_x_max-10 * 7, 40,  0,0,1,  pid_sub_i,           pid_add_i,          nfunc},  
+        {2,"d",      ips200_x_max-10 * 7, 60,  0,0,1,  pid_sub_d,           pid_add_d,          nfunc},  
+        {2,"i_max",  ips200_x_max-10 * 7, 80,  0,0,1,  pid_sub_i_max,       pid_add_i_max,      nfunc},  
+        {2,"d_max",  ips200_x_max-10 * 7, 100, 0,0,1,  pid_sub_d_max,       pid_add_d_max,      nfunc},  
+        {2,"output", ips200_x_max-10 * 7, 120, 0,0,1,  pid_sub_output_max,  pid_add_output_max, nfunc},
     {1,"carstatue",0,40,0,0,0},
         {2,"v_left"         ,ips200_x_max-10*7,20,0,0,1,                nfunc,nfunc,nfunc},
         {2,"v_right"        ,ips200_x_max -10*7,40,0,0,1,                nfunc,nfunc,nfunc},
@@ -44,7 +54,14 @@ MENU menu[]={
         {2,"encoder_left"   ,ips200_x_max-10*7,80,0,0,0,                nfunc,nfunc,nfunc},
         {2,"angle"          ,ips200_x_max-10*7,100,0,0,0,               nfunc,nfunc,nfunc},
         {2,"angle2"         ,ips200_x_max-10*7,120,0,0,0,               nfunc,nfunc,nfunc},
-    {1,"graph",0,60,0,0,0},
+    {1,"graph_param",0,60,0,0,0},
+        {2,"w_step"         ,ips200_x_max-10*7,20,0,0,0,                w_step_sub, w_step_add, nfunc},
+        {2,"h_step"         ,ips200_x_max-10*7,40,0,0,0,                h_step_sub, h_step_add, nfunc},
+        {2,"K"              ,ips200_x_max-10*7,60,0,0,0,                K_sub,      K_add,      nfunc},
+        {2,"limit"          ,ips200_x_max-10*7,80,0,0,0,                limit_sub,  limit_add,  nfunc},
+    {1,"graph_show",0,80,0,0,0},
+        {2,"graph"          ,ips200_x_max-10*7,20,0,0,0,                nfunc,      nfunc,      nfunc},
+
     {1,"end",0,0,0,0,0}//不可删去
 };
 
@@ -98,6 +115,53 @@ void update(void)
             {
                 menu[i].value_i=Encoder_GetInfo_L();
             }
+            struct pid_v *pid_ptr = PID_vget_param();
+            
+            
+            //PID控制
+            if(strcmp(menu[i].str, "p")==0)
+            {
+                menu[i].value_f=pid_ptr->p;
+            }
+            if(strcmp(menu[i].str, "i")==0)
+            {
+                menu[i].value_f=pid_ptr->i;
+            }
+            if(strcmp(menu[i].str, "d")==0)
+            {
+                menu[i].value_f=pid_ptr->d;
+            }           
+            if(strcmp(menu[i].str, "i_max")==0)
+            {
+                menu[i].value_f=pid_ptr->i_max;
+            }
+            if(strcmp(menu[i].str, "d_max")==0)
+            {
+                menu[i].value_f=pid_ptr->d_max;
+            }
+            if(strcmp(menu[i].str, "output")==0)
+            {
+                menu[i].value_f=pid_ptr->output_max;
+            }
+            
+            //图象处理
+            if(strcmp(menu[i].str, "w_step")==0)
+            {
+                menu[i].value_i=w_step;
+            }
+            if(strcmp(menu[i].str, "h_step")==0)
+            {
+                menu[i].value_i=h_step;
+            }
+            if(strcmp(menu[i].str, "K")==0)
+            {
+                menu[i].value_i=K;
+            }
+            if(strcmp(menu[i].str, "limit")==0)
+            {
+                menu[i].value_i=limit;
+            }
+            //图象显示
         }
 }
 
@@ -170,6 +234,10 @@ void output(void)
                 }
             } 
         }
+    }
+    if(strcmp(menu[p_nearby].str,"graph_param")==0)
+    {
+        
     }
 }
 
@@ -262,4 +330,5 @@ void Menu_control(void)
             break;
         }
         input=0;
+        
 }

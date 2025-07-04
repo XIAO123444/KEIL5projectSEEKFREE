@@ -456,6 +456,16 @@
               <FileType>5</FileType>
               <FilePath>..\code\photo_chuli.h</FilePath>
             </File>
+            <File>
+              <FileName>flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>flash.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\flash.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

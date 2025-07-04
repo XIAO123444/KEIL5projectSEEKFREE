@@ -32,9 +32,9 @@
 * 日期              作者                备注
 * 2022-08-10        Teternal            first version
 ********************************************************************************************************************/
-
+#include "zf_common_headfile.h"
 #include "isr.h"
-
+#include "pid_v.h"
 extern uint32 key1_count;
 extern uint32 key2_count;
 extern uint32 key3_count;
@@ -52,6 +52,7 @@ extern int input;
 extern int status;
 extern int32 encoder1;
 extern int32 encoder2;
+extern bool save_flag;          //布尔类型flash存储标志
 
 //-------------------------------------------------------------------------------------------------------------------
 // 函数简介     TIM1 的定时器更新中断服务函数 启动 .s 文件定义 不允许修改函数名称
@@ -192,6 +193,7 @@ void TIM6_IRQHandler (void)
 {
     // 此处编写用户代码
 
+    
     // 此处编写用户代码
     TIM6->SR &= ~TIM6->SR;                                                      // 清空中断状态
 }
@@ -203,6 +205,7 @@ void TIM6_IRQHandler (void)
 void TIM7_IRQHandler (void)
 {
     // 此处编写用户代码
+    save_flag=true;
 
     // 此处编写用户代码
     TIM7->SR &= ~TIM7->SR;                                                      // 清空中断状态

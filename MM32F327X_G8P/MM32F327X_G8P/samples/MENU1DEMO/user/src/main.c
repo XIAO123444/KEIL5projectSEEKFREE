@@ -76,43 +76,84 @@
 #include "menu.h"
 #include "encoder.h"
 #include "key.h"
+#include "photo_chuli.h"
+#include "pid_v.h"
+#include "flash.h"//老大
+bool save_flag=false;
+extern struct pid_v PID_V;                  //pid_V
+extern uint16 w_step,h_step,K,limit;        //图象处理
 
 void all_init(void)
 {
     clock_init(SYSTEM_CLOCK_120M);//必须最先开启时钟
     debug_init(); 
-    
+    flash_init();    
+	system_delay_ms(300);
+
     Key_init();                     //按键初始化
     Encoder_Init();                 //编码器初始化
-
-	system_delay_ms(300);           
     Menu_Screen_Init();             //屏幕显示初始化
-}
+    while(1)//摄像头... 
+    {
+        if(mt9v03x_init())
+        {
+            ips200_show_string(0, 16, "mt9v03x reinit.");
+        }
+        else
+        {
+            break;
+        }
+        system_delay_ms(500);                                                  
+    }
 
+
+}
+void flash_save(void)
+{
+    if(save_flag)
+    {
+        if(flash_check(100, 0)){flash_erase_page(100, 0);}
+        struct pid_v *pid_ptr = PID_vget_param(); 
+        flash_buffer_clear();
+        
+        //100,0储存pid_v的数据
+        flash_union_buffer[0].float_type=PID_V.p;
+        flash_union_buffer[1].float_type=PID_V.i;    
+        flash_union_buffer[2].float_type=PID_V.d;
+        flash_union_buffer[3].float_type=PID_V.i_max;
+        flash_union_buffer[4].float_type=PID_V.d_max;    
+        flash_union_buffer[5].float_type=PID_V.output_max;
+        flash_erase_page(100,0);
+        flash_write_page_from_buffer(100,0);        // 向指定 Flash 扇区的页码写入缓冲区数据
+
+        //100,1储存图象处理的数据
+        flash_buffer_clear();
+        
+        
+        if(flash_check(100, 1)){flash_erase_page(100, 1);}
+        flash_union_buffer[0].uint16_type=w_step;
+        flash_union_buffer[1].uint16_type=h_step;
+        flash_union_buffer[2].uint16_type=K;
+        flash_union_buffer[3].uint16_type=limit;
+        flash_erase_page(100,1);
+        flash_write_page_from_buffer(100,1);        // 向指定 Flash 扇区的页码写入缓冲区数据
+
+        
+        save_flag=false;
+    }
+}
 
 int main (void)
 {
     all_init();
-    flash_buffer_clear();                                                       // 清空缓冲区
-    flash_union_buffer[0].float_type  = 3.1415926;                              // 向缓冲区第 0 个位置写入 float  数据
-    flash_write_page_from_buffer(0, 0);        // 向指定 Flash 扇区的页码写入缓冲区数据
-	system_delay_ms(300);           
-    flash_buffer_clear();                                                  		// 清空缓冲区
-    flash_read_page_to_buffer(0, 0);           // 将数据从 flash 读取到缓冲区
     
 
-//        flash_buffer_clear();                                                       // 清空缓冲区
-//        flash_union_buffer[0].float_type  = test;                              // 向缓冲区第 0 个位置写入 float  数据
-//        flash_write_page_from_buffer(0, 0);        // 向指定 Flash 扇区的页码写入缓冲区数据
-//        flash_buffer_clear();  
-//        flash_read_page_to_buffer(0, 0);           // 将数据从 flash 读取到缓冲区
-//        test=flash_union_buffer[0].float_type;
-    
 
-        ips200_show_float(0,20,flash_union_buffer[0].float_type,3,3);
-//        Key_Scan();
-//        Menu_control();
-        
+    while(1){
+        Key_Scan();
+        Menu_control();
+        flash_save();
+        }
     
 }
 // **************************** 代码区域 ****************************
