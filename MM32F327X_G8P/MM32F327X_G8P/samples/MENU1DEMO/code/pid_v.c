@@ -1,7 +1,14 @@
 #include "zf_common_headfile.h"
-
-   
-  
+#include "encoder.h"
+#include "motor.h"
+volatile float  duty1=0;
+volatile float  duty2=0;
+volatile float integral1=0;
+volatile float derivative1=0;
+volatile float integral2=0;
+volatile float derivative2=0;
+volatile float lasterror1=0;
+volatile float lasterror2=0;
   struct pid_v
 {
     float output_max;       //Êä³öÏÞ·ù   
@@ -14,12 +21,12 @@
 }PID_V;
 void pid_vparam_init(void)
 {
-    PID_V.d=0.0;
-    PID_V.d_max=0.0;
-    PID_V.i=0.0;
-    PID_V.i_max=0.0;
-    PID_V.output_max=0;
-    PID_V.p=0.0;
+    PID_V.d=0.5;
+    PID_V.d_max=0.5;
+    PID_V.i=0.5;
+    PID_V.i_max=0.5;
+    PID_V.output_max=0.5;
+    PID_V.p=0.5;
 }
 
 struct pid_v* PID_vget_param(void)
@@ -36,6 +43,86 @@ void PID_vset_param(struct pid_v* p)
     PID_V.output_max=p          ->output_max;
 
 }
+void pid_control(int16 target1,int16 target2)
+{
+    float error1=(target1-Encoder_GetInfo_L())/60;//×ó
+    float error2=(target2-Encoder_GetInfo_R())/60;//ÓÒ
+    integral1+=error1;
+    integral2+=error2;
+    derivative1=error1-lasterror1;
+    derivative2=error2-lasterror2;
+    if(integral1>PID_V.i_max){integral1=PID_V.i_max;}
+    if(integral1<-PID_V.i_max){integral1=-PID_V.i_max;}
+    if(derivative1>PID_V.d_max){derivative1=PID_V.d_max;}
+    if(derivative1<-PID_V.d_max){derivative1=-PID_V.d_max;}
+    
+    if(integral2>PID_V.i_max){integral2=PID_V.i_max;}
+    if(integral2<-PID_V.i_max){integral2=-PID_V.i_max;}
+    if(derivative2>PID_V.d_max){derivative2=PID_V.d_max;}
+    if(derivative2<-PID_V.d_max){derivative2=-PID_V.d_max;}
+
+
+    lasterror1=error1;
+    lasterror2=error2;
+    
+    duty1=(PID_V.p*error1+PID_V.i*integral1+PID_V.d*derivative1);
+    duty2=(PID_V.p*error2+PID_V.i*integral2+PID_V.d*derivative2);
+  
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void pid_add_p(void){
     
     PID_V.p+=0.1;

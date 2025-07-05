@@ -79,6 +79,7 @@
 #include "photo_chuli.h"
 #include "pid_v.h"
 #include "flash.h"//老大
+#include "motor.h"
 bool save_flag=false;
 extern struct pid_v PID_V;                  //pid_V
 extern uint16 w_step,h_step,K,limit;        //图象处理
@@ -86,13 +87,15 @@ extern uint16 w_step,h_step,K,limit;        //图象处理
 void all_init(void)
 {
     clock_init(SYSTEM_CLOCK_120M);//必须最先开启时钟
-    debug_init(); 
+    debug_init();
+    Menu_Screen_Init();             //屏幕显示初始化
     flash_init();    
 	system_delay_ms(300);
 
     Key_init();                     //按键初始化
+
     Encoder_Init();                 //编码器初始化
-    Menu_Screen_Init();             //屏幕显示初始化
+    motor_init();
     while(1)//摄像头... 
     {
         if(mt9v03x_init())
@@ -103,8 +106,12 @@ void all_init(void)
         {
             break;
         }
-        system_delay_ms(500);                                                  
+        system_delay_ms(50);
+        
     }
+
+
+    
 
 
 }
@@ -146,14 +153,13 @@ void flash_save(void)
 int main (void)
 {
     all_init();
-    
 
-
-    while(1){
+    while(1){ 
         Key_Scan();
         Menu_control();
         flash_save();
-        }
+//        motor_run();      pid_control(1500,1500);
+       }
     
 }
 // **************************** 代码区域 ****************************

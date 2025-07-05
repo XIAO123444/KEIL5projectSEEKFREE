@@ -22,7 +22,7 @@ extern uint16 w_step,h_step,K,limit;
 typedef struct 
 {
     unsigned char priority;
-    char str[40];
+    char str[20];
     uint16 x;
     uint16 y;
     float value_f;
@@ -47,20 +47,20 @@ MENU menu[]={
         {2,"i_max",  ips200_x_max-10 * 7, 80,  0,0,1,  pid_sub_i_max,       pid_add_i_max,      nfunc},  
         {2,"d_max",  ips200_x_max-10 * 7, 100, 0,0,1,  pid_sub_d_max,       pid_add_d_max,      nfunc},  
         {2,"output", ips200_x_max-10 * 7, 120, 0,0,1,  pid_sub_output_max,  pid_add_output_max, nfunc},
+        {2,"reset",  ips200_x_max-10 * 7, 140, 0,0,1,  pid_vparam_init, nfunc , nfunc},
+        {2,"encoder_right"  ,ips200_x_max-10*7,160,0,0,0,                nfunc,nfunc,nfunc},
+        {2,"encoder_left"   ,ips200_x_max-10*7,180,0,0,0,                nfunc,nfunc,nfunc},
+
     {1,"carstatue",0,40,0,0,0},
         {2,"v_left"         ,ips200_x_max-10*7,20,0,0,1,                nfunc,nfunc,nfunc},
         {2,"v_right"        ,ips200_x_max -10*7,40,0,0,1,                nfunc,nfunc,nfunc},
         {2,"encoder_right"  ,ips200_x_max-10*7,60,0,0,0,                nfunc,nfunc,nfunc},
         {2,"encoder_left"   ,ips200_x_max-10*7,80,0,0,0,                nfunc,nfunc,nfunc},
-        {2,"angle"          ,ips200_x_max-10*7,100,0,0,0,               nfunc,nfunc,nfunc},
-        {2,"angle2"         ,ips200_x_max-10*7,120,0,0,0,               nfunc,nfunc,nfunc},
     {1,"graph_param",0,60,0,0,0},
         {2,"w_step"         ,ips200_x_max-10*7,20,0,0,0,                w_step_sub, w_step_add, nfunc},
         {2,"h_step"         ,ips200_x_max-10*7,40,0,0,0,                h_step_sub, h_step_add, nfunc},
         {2,"K"              ,ips200_x_max-10*7,60,0,0,0,                K_sub,      K_add,      nfunc},
         {2,"limit"          ,ips200_x_max-10*7,80,0,0,0,                limit_sub,  limit_add,  nfunc},
-    {1,"graph_show",0,80,0,0,0},
-        {2,"graph"          ,ips200_x_max-10*7,20,0,0,0,                nfunc,      nfunc,      nfunc},
 
     {1,"end",0,0,0,0,0}//不可删去
 };
@@ -100,7 +100,7 @@ void Menu_Screen_Init(void)
 参数说明     无
 返回参数     无
 使用示例     直接调用
-备注信息     已加入左右编码器的数据
+备注信息     已加入左右编码器的数据，图象处理的数据
 -------------------------------------------------------------------------------------------------------------------
 */
 void update(void)
@@ -237,7 +237,7 @@ void output(void)
     }
     if(strcmp(menu[p_nearby].str,"graph_param")==0)
     {
-        
+        photoShow();
     }
 }
 

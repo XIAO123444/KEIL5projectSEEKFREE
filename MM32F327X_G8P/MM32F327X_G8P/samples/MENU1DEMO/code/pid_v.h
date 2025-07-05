@@ -13,6 +13,11 @@ struct pid_v {  // 完整定义
 
 extern struct pid_v PID_V;
  
+void pid_control(int16 target1,int16 target2);
+
+
+
+
 // 参数增加函数
 void pid_add_p(void);
 void pid_add_i(void);

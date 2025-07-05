@@ -18,11 +18,11 @@ void flash_init(void)
     flash_buffer_clear();
     flash_read_page_to_buffer(100, 1);                            // 将数据从 flash 读取到缓冲区
     w_step                 =flash_union_buffer[0].uint16_type;
-    h_step                 =flash_union_buffer[0].uint16_type;
-    K                      =flash_union_buffer[0].uint16_type;
-    limit                  =flash_union_buffer[0].uint16_type;
+    h_step                 =flash_union_buffer[1].uint16_type;
+    K                      =flash_union_buffer[2].uint16_type;
+    limit                  =flash_union_buffer[3].uint16_type;
     
-    pit_ms_init(TIM7_PIT,2000);
+    pit_ms_init(TIM7_PIT,10000);
     interrupt_set_priority(TIM7_IRQn, 10);
 
 }
