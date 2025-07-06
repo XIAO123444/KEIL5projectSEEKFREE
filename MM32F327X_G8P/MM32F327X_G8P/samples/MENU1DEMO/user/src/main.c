@@ -41,17 +41,6 @@
 
 
 // *************************** 例程硬件连接说明 ***************************
-//      模块管脚            单片机管脚
-//      双排排针 并口两寸屏 硬件引脚
-//      RD                  查看 zf_device_ips200.h 中 IPS200_RD_PIN_PARALLEL8     宏定义 A5
-//      WR                  查看 zf_device_ips200.h 中 IPS200_WR_PIN_PARALLEL8     宏定义 A7
-//      RS                  查看 zf_device_ips200.h 中 IPS200_RS_PIN_PARALLEL8     宏定义 A6
-//      RST                 查看 zf_device_ips200.h 中 IPS200_RST_PIN_PARALLEL8    宏定义 D0
-//      CS                  查看 zf_device_ips200.h 中 IPS200_CS_PIN_PARALLEL8     宏定义 A4
-//      BL                  查看 zf_device_ips200.h 中 IPS200_BL_PIN_PARALLEL8     宏定义 D1
-//      D0-D7               查看 zf_device_ips200.h 中 IPS200_Dx_PIN_PARALLEL8     宏定义 D8/D9/D10/D11/D12/D13/D14/D15
-//      GND                 核心板电源地 GND
-//      3V3                 核心板 3V3 电源
 //      单排排针 SPI 两寸屏 硬件引脚
 //      SCL                 查看 zf_device_ips200.h 中 IPS200_SCL_PIN_SPI  宏定义 A5
 //      SDA                 查看 zf_device_ips200.h 中 IPS200_SDA_PIN_SPI  宏定义 A7
@@ -76,24 +65,26 @@
 #include "menu.h"
 #include "encoder.h"
 #include "key.h"
-#include "photo_chuli.h"
 #include "pid_v.h"
 #include "flash.h"//老大
 #include "motor.h"
-bool save_flag=false;
-extern struct pid_v PID_V;                  //pid_V
-extern uint16 w_step,h_step,K,limit;        //图象处理
+#include "photo_chuli.h"
+#include "screen.h"
+#include "track.h"
 
+bool save_flag=false;
+extern uint8 leftline_num;//左线点数量
+extern uint8 rightline_num;//右线点数量
+extern struct pid_v PID_V;                  //pid_V
+extern bool start_flag;
 void all_init(void)
 {
     clock_init(SYSTEM_CLOCK_120M);//必须最先开启时钟
     debug_init();
     Menu_Screen_Init();             //屏幕显示初始化
-    flash_init();    
 	system_delay_ms(300);
-
+    flash_init();    
     Key_init();                     //按键初始化
-
     Encoder_Init();                 //编码器初始化
     motor_init();
     while(1)//摄像头... 
@@ -111,12 +102,13 @@ void all_init(void)
     }
 
 
+
     
 
 
 }
 void flash_save(void)
-{
+ {
     if(save_flag)
     {
         if(flash_check(100, 0)){flash_erase_page(100, 0);}
@@ -138,10 +130,7 @@ void flash_save(void)
         
         
         if(flash_check(100, 1)){flash_erase_page(100, 1);}
-        flash_union_buffer[0].uint16_type=w_step;
-        flash_union_buffer[1].uint16_type=h_step;
-        flash_union_buffer[2].uint16_type=K;
-        flash_union_buffer[3].uint16_type=limit;
+
         flash_erase_page(100,1);
         flash_write_page_from_buffer(100,1);        // 向指定 Flash 扇区的页码写入缓冲区数据
 
@@ -157,11 +146,44 @@ int main (void)
     while(1){ 
         Key_Scan();
         Menu_control();
-        flash_save();
-//        motor_run();      pid_control(1500,1500);
+       flash_save();
+        if(mt9v03x_finish_flag)
+        {
+            image_boundary_process();
+            switch_trackline();
+            ips200_show_uint(0, 200, leftline_num, 3); 
+            ips200_show_uint(0, 216, rightline_num, 3);
+            ips200_show_gray_image(0,120,(const uint8 *)mt9v03x_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);
+            show_line();
+
+            mt9v03x_finish_flag = 0;
+            
+        }        
+        motor_run(0,pid_control1(3000));//左是右
        }
     
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // **************************** 代码区域 ****************************
 
 // *************************** 例程常见问题说明 ***************************

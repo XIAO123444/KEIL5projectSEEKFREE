@@ -1,151 +1,75 @@
-#include "photo_chuli.h"
-
-
-
-
-uint16 w_step,h_step,K,limit;
-volatile uint16 left_edge[MT9V03X_H]={0};
-volatile uint16 right_edge[MT9V03X_H]={0};
-volatile uint16 middle_edge[MT9V03X_H]={0};
-void chuli_init(void)
-{
-    w_step=1;h_step=1;K=1;limit=1;
-}
-
-
-bool cal_compare(uint8 a,uint8 b,uint16 K,uint16 limit)
-{
-    uint16 differ=(a>b)?((uint16)a-(uint16)b):((uint16)b-(uint16)a);
-    uint16 result=(differ<<K)/((uint16)b+(uint16)a+1);
-    if(result>=limit)
-    {
-        return true; //边界点
-    }
-    else
-    {
-        return false;
-    }
-}
-
 /*
-@处理图象
-@const uint8 *image 原图象指针
+ * camera.c
+ *
+ *  Created on: 2023年10月24日
+ *      Author: lychee
+ */
+#include "photo_chuli.h"
+#include "math.h"
+uint16 centerline[MT9V03X_H];
+uint16 leftline[MT9V03X_H];
+uint16 rightline[MT9V03X_H];
+uint8 leftline_num;//左线点数量
+uint8 rightline_num;//右线点数量
+uint16 sar_thre = 17;//差比和阈值
+uint8 pix_per_meter = 20;//每米的像素数
 
-@uint32 w_step      宽度步长
-@uint32 h_step      高度步长
-@uint16 K           比例系数
-@uint16 limit       阈值
-*/
+//逐行寻找边界点
+void image_boundary_process(void){
+    uint8 row;//行
+    //uint8 col = MT9V03X_W/2;//列
+    uint8 start_col = MT9V03X_W / 2;//各行起点的列坐标,默认为MT9V03X_W / 2
+    //清零之前的计数
+    leftline_num = 0;
+    rightline_num = 0;
 
-
-void ips200_chuli_image(const uint8 *image,uint16 w_step,uint16 h_step,uint16 K,uint16 limit)
-{
-    uint16 i = 0, j = 0;
-    uint16 temp1,temp2 = 0;
-    uint16 width_index, height_index;
-    uint16 mark1;                                //标记查找中线
-    uint16 max=0;                                 //标记查找最大值（初始为0）
-    for(i = 0; i < MT9V03X_W-w_step; i +=w_step)
-    {
-        width_index = i;
-    
-        for(j = MT9V03X_H-h_step; j > h_step; j -=h_step)
-        {
-            height_index = j;
-            temp1 = *(image + height_index * MT9V03X_W + width_index);               // 读取像素点
-            temp2 = *(image + (height_index-h_step) * MT9V03X_W + width_index);               // 读取像素点
-            
-            if(cal_compare(temp1,temp2,K,limit))
-            {
-                if(j<max)
-                {
-                    max=j;
-                    mark1=width_index;
-                }
-                break;
-            }
+    for(row = MT9V03X_H - 1; row >= 1; row--){
+        //选用上一行的中点作为下一行计算起始点，节省速度，同时防止弯道的左右两边均出现与画面一侧
+        if(row != MT9V03X_H - 1){
+            start_col = (uint8)(0.4 * centerline[row] + 0.3 * start_col + 0.1 * MT9V03X_W);//一阶低通滤波，防止出现噪点影响下一行的起始点
         }
-        
-    }
-
-    
-         for(j = MT9V03X_H-1; j >1 ; j --)//考虑到性能大幅度提升
-        {
-            uint16 mark=mark1;
-            height_index=j;
-                //接下来从mark处从右向左遍历
-            for(i=mark;i>=w_step;i-=w_step)
-            {
-                width_index=i;
-                temp1=*(image + height_index * MT9V03X_W + width_index);
-                temp2=*(image + height_index * MT9V03X_W + width_index-w_step);
-                if(cal_compare(temp1,temp2,K,limit))
-                {                   
-                    left_edge[height_index]=width_index;
-                    break;
-                }
-       
-                mark1=width_index;
-            }
-            //接下来从mark处从左向右处遍历
-            for(i=mark;i<=MT9V03X_H-w_step;i+=w_step)
-            {
-                width_index=i;
-               
-                temp1=*(image + height_index * MT9V03X_W + width_index);
-                temp2=*(image + height_index * MT9V03X_W + width_index+w_step);
-                if(cal_compare(temp1,temp2,K,limit))
-                {
-                        right_edge[height_index]=width_index;
-                        break;
-                    
-                }
-
-            } 
-            mark1=(mark1+width_index)/2;
-            middle_edge[height_index]=mark1;
+        else if(row == MT9V03X_H - 1){
+            start_col = MT9V03X_W / 2;
         }
-
-}
-
-
-
-void show_line(void)
-{
-    for(uint16 i = 0; i < MT9V03X_H-1; i ++)
-    {
-        
-//        ips200_draw_point(left_edge[i],i+100,12);
-//        ips200_draw_point(right_edge[i],i+100,12);
-//        ips200_draw_point(middle_edge[i],i+100,12);
-
-        printf("%d,",left_edge[i]);
-        printf("%d,",right_edge[i]);
-        printf("%d,",middle_edge[i]);
-
-
+        //逐行作差比和
+        difsum_left(row,start_col);
+        difsum_right(row,start_col);
+        centerline[row] = 0.5 * (rightline[row] + leftline[row]);
     }
-                                             //可以再加入循迹线。。。后续制作                     
 }
-
-void photoShow(void)
-{   
-    if(mt9v03x_finish_flag){
-    ips200_show_gray_image(0, 100, (const uint8 *)mt9v03x_image, MT9V03X_W, MT9V03X_H, MT9V03X_W, MT9V03X_H, 0);    
-       ips200_chuli_image((const uint8 *)mt9v03x_image,w_step,h_step,K,limit);
-        show_line();    mt9v03x_finish_flag=0;
-        
+//差比和寻找左侧边界点
+void difsum_left(uint8 y,uint8 x){
+    float sum,dif,sar;//和，差，比
+    uint8 col;//列
+    uint8 mov = 2;//每次作差后的移动量,默认为2，可以根据画面分辨率调整
+    //计算第x行的左边界
+    leftline[y] = 0;//未找到左边界时输出为0
+    for(col = x; col >= mov + 1; col -= mov){
+        dif = (float)((mt9v03x_image[y][col] - mt9v03x_image[y][col - mov - 1])<<8);//左移8位即乘256，可避免浮点数乘，加快速度
+        sum = (float)((mt9v03x_image[y][col] + mt9v03x_image[y][col - mov - 1]));
+        sar = fabs(dif / sum);//求取差比和
+        if(sar > sar_thre){//差比和大于阈值代表深浅色突变
+            leftline[y] = (int16)(col - mov);
+            leftline_num ++;//左线点计数+
+            break;//找到边界后退出
+        }
     }
-    
 }
-// 加法实现（直接递增，无溢出检查）
-void w_step_add(void) { w_step++; }
-void h_step_add(void) { h_step++; }
-void K_add(void)     { K++; }
-void limit_add(void) { limit++; }
-
-// 减法实现（最小值保护为1）
-void w_step_sub(void) { if (w_step > 1) w_step--;else w_step=1; }
-void h_step_sub(void) { if (h_step > 1) h_step--;else h_step=1 ;}
-void K_sub(void)     { if (K > 1) K--;  else K=1; }
-void limit_sub(void) { if (limit > 1) limit--; else limit=1; }
+//差比和寻找右侧边界点
+void difsum_right(uint8 y,uint8 x){
+    float sum,dif,sar;//和，差，比
+    uint8 col;//列
+    uint8 mov = 2;//每次作差后的移动量,默认为2，可以根据画面分辨率调整
+    //计算第x行的左边界
+    rightline[y] = MT9V03X_W - 1;//未找到右边界时输出为187
+    for(col = x; col <= MT9V03X_W - mov - 1; col += mov){
+        dif = (float)((mt9v03x_image[y][col] - mt9v03x_image[y][col + mov + 1])<<8);//左移8位即乘256，可避免浮点数乘，加快速度
+        sum = (float)((mt9v03x_image[y][col] + mt9v03x_image[y][col + mov + 1]));
+        sar = fabs(dif / sum);//求取差比和
+        if(sar > sar_thre){//差比和大于阈值代表深浅色突变
+            rightline[y] = (int16)(col + mov);
+            rightline_num ++;//右线点计数+
+            break;//找到边界后退出
+        }
+    }
+}

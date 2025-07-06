@@ -447,16 +447,6 @@
               <FilePath>..\code\pid_v.h</FilePath>
             </File>
             <File>
-              <FileName>photo_chuli.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\code\photo_chuli.c</FilePath>
-            </File>
-            <File>
-              <FileName>photo_chuli.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\code\photo_chuli.h</FilePath>
-            </File>
-            <File>
               <FileName>flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\code\flash.c</FilePath>
@@ -475,6 +465,46 @@
               <FileName>motor.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\code\motor.h</FilePath>
+            </File>
+            <File>
+              <FileName>carstate.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\carstate.c</FilePath>
+            </File>
+            <File>
+              <FileName>carstate.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\carstate.h</FilePath>
+            </File>
+            <File>
+              <FileName>photo_chuli.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\photo_chuli.c</FilePath>
+            </File>
+            <File>
+              <FileName>photo_chuli.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\photo_chuli.h</FilePath>
+            </File>
+            <File>
+              <FileName>screen.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\screen.c</FilePath>
+            </File>
+            <File>
+              <FileName>screen.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\screen.h</FilePath>
+            </File>
+            <File>
+              <FileName>track.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\track.c</FilePath>
+            </File>
+            <File>
+              <FileName>track.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\track.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -1,15 +1,14 @@
-#include "menu.h"
+ #include "menu.h"
 #include "pid_v.h"
 #include "encoder.h"
 #include "key.h"
-#include "photo_chuli.h"
 
 
 
 
 #define ips200_x_max 240
 #define ips200_y_max 320
-
+bool start_flag=false;
 int current_state=1;
 int p=0;//记录当前指针
 int p_nearby=0;//记录所属的指针
@@ -38,6 +37,10 @@ void nfunc(void){
     ips200_show_string(0,180,"nofunc");
 
 }
+void start_car(void)
+{
+    start_flag=true;
+}
 
 MENU menu[]={
     {1,"pid_param",0,20,0,0,0},
@@ -55,12 +58,9 @@ MENU menu[]={
         {2,"v_left"         ,ips200_x_max-10*7,20,0,0,1,                nfunc,nfunc,nfunc},
         {2,"v_right"        ,ips200_x_max -10*7,40,0,0,1,                nfunc,nfunc,nfunc},
         {2,"encoder_right"  ,ips200_x_max-10*7,60,0,0,0,                nfunc,nfunc,nfunc},
-        {2,"encoder_left"   ,ips200_x_max-10*7,80,0,0,0,                nfunc,nfunc,nfunc},
-    {1,"graph_param",0,60,0,0,0},
-        {2,"w_step"         ,ips200_x_max-10*7,20,0,0,0,                w_step_sub, w_step_add, nfunc},
-        {2,"h_step"         ,ips200_x_max-10*7,40,0,0,0,                h_step_sub, h_step_add, nfunc},
-        {2,"K"              ,ips200_x_max-10*7,60,0,0,0,                K_sub,      K_add,      nfunc},
-        {2,"limit"          ,ips200_x_max-10*7,80,0,0,0,                limit_sub,  limit_add,  nfunc},
+        {2,"encoder_left"   ,ips200_x_max-10*7,80,0,0,0,                start_car,nfunc,nfunc},
+    {1,"START_THECAR",0,60,0,0,0},
+
 
     {1,"end",0,0,0,0,0}//不可删去
 };
@@ -145,22 +145,7 @@ void update(void)
             }
             
             //图象处理
-            if(strcmp(menu[i].str, "w_step")==0)
-            {
-                menu[i].value_i=w_step;
-            }
-            if(strcmp(menu[i].str, "h_step")==0)
-            {
-                menu[i].value_i=h_step;
-            }
-            if(strcmp(menu[i].str, "K")==0)
-            {
-                menu[i].value_i=K;
-            }
-            if(strcmp(menu[i].str, "limit")==0)
-            {
-                menu[i].value_i=limit;
-            }
+
             //图象显示
         }
 }
@@ -237,7 +222,6 @@ void output(void)
     }
     if(strcmp(menu[p_nearby].str,"graph_param")==0)
     {
-        photoShow();
     }
 }
 

@@ -5,8 +5,7 @@
 
 #define DIR_R               (A2 )
 #define PWM_R               (TIM5_PWM_CH4_A3)
-extern volatile float duty1;
-extern  float duty2;
+
 
 bool dir = true;
 void motor_init()
@@ -19,31 +18,32 @@ void motor_init()
 }
 //PWM_DUTY_MAX=10000
 
-void motor_run(void)
+void motor_run(uint16 a,uint16 b) 
 {
-    if(0 <= duty1)                                                           // 正转
+
+    if(0 <= a)                                                           // 正转
         {
             gpio_set_level(DIR_L, GPIO_HIGH);                                   // DIR输出高电平
-            pwm_set_duty(PWM_L, (uint16)(duty1 * (PWM_DUTY_MAX / 1000)));                   // 计算占空比
+            pwm_set_duty(PWM_L, (uint16)(a * (PWM_DUTY_MAX / 10000)));                   // 计算占空比
                  // 计算占空比
         }
         else                                                                    // 反转
         {
             gpio_set_level(DIR_L, GPIO_LOW);                                    // DIR输出低电平
-            pwm_set_duty(PWM_L, (uint16)((-duty1) * (PWM_DUTY_MAX / 1000)));                // 计算占空比
+            pwm_set_duty(PWM_L, (uint16)((-a) * (PWM_DUTY_MAX / 10000)));                // 计算占空比
 
-;                // 计算占空比
+                // 计算占空比
         }
-     if(0 <= duty2)                                                           // 正转
+     if(0 <= b)                                                           // 正转
         {
 
             gpio_set_level(DIR_R, GPIO_HIGH);                                   // DIR输出高电平
-            pwm_set_duty(PWM_R, (uint16)(duty2 * (PWM_DUTY_MAX / 1000)));                   // 计算占空比
+            pwm_set_duty(PWM_R, (uint16)(b * (PWM_DUTY_MAX / 10000)));                   // 计算占空比
         }
         else                                                                    // 反转
         {
 
             gpio_set_level(DIR_R, GPIO_LOW);                                    // DIR输出低电平
-            pwm_set_duty(PWM_R, (uint16)((-duty2) * (PWM_DUTY_MAX / 1000)));                // 计算占空比
+            pwm_set_duty(PWM_R, (uint16)((-b) * (PWM_DUTY_MAX / 10000)));                // 计算占空比
         }
 }

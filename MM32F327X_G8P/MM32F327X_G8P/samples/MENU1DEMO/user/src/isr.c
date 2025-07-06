@@ -35,8 +35,7 @@
 #include "zf_common_headfile.h"
 #include "isr.h"
 #include "pid_v.h"
-#include "photo_chuli.h"
-
+#include "motor.h"
 extern uint32 key1_count;
 extern uint32 key2_count;
 extern uint32 key3_count;
