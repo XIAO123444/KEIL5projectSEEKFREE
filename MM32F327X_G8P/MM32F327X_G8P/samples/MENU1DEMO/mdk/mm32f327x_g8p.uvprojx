@@ -506,6 +506,16 @@
               <FileType>5</FileType>
               <FilePath>..\code\track.h</FilePath>
             </File>
+            <File>
+              <FileName>streer_pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\streer_pid.c</FilePath>
+            </File>
+            <File>
+              <FileName>steer_pid.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\steer_pid.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

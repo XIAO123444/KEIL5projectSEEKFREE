@@ -2,7 +2,7 @@
 #include "pid_v.h"
 #include "encoder.h"
 #include "key.h"
-
+#include "steer_pid.h"
 
 
 
@@ -41,25 +41,41 @@ void start_car(void)
 {
     start_flag=true;
 }
-
+int speed=1000;
+void addspeed()
+{
+    speed+=500;
+}
+void subspeed()
+{
+    speed-=500;
+}
 MENU menu[]={
     {1,"pid_param",0,20,0,0,0},
         {2,"p",      ips200_x_max-10 * 7, 20,  0,0,1,  pid_sub_p,           pid_add_p,          nfunc},  
         {2,"i",      ips200_x_max-10 * 7, 40,  0,0,1,  pid_sub_i,           pid_add_i,          nfunc},  
         {2,"d",      ips200_x_max-10 * 7, 60,  0,0,1,  pid_sub_d,           pid_add_d,          nfunc},  
-        {2,"i_max",  ips200_x_max-10 * 7, 80,  0,0,1,  pid_sub_i_max,       pid_add_i_max,      nfunc},  
-        {2,"d_max",  ips200_x_max-10 * 7, 100, 0,0,1,  pid_sub_d_max,       pid_add_d_max,      nfunc},  
-        {2,"output", ips200_x_max-10 * 7, 120, 0,0,1,  pid_sub_output_max,  pid_add_output_max, nfunc},
+//        {2,"i_max",  ips200_x_max-10 * 7, 80,  0,0,1,  pid_sub_i_max,       pid_add_i_max,      nfunc},  
+//        {2,"d_max",  ips200_x_max-10 * 7, 100, 0,0,1,  pid_sub_d_max,       pid_add_d_max,      nfunc},  
+//        {2,"output", ips200_x_max-10 * 7, 120, 0,0,1,  pid_sub_output_max,  pid_add_output_max, nfunc},
+        {2,"speed",ips200_x_max-10 * 7 ,80 ,0,0,1, subspeed,           addspeed,          nfunc },
+
         {2,"reset",  ips200_x_max-10 * 7, 140, 0,0,1,  pid_vparam_init, nfunc , nfunc},
         {2,"encoder_right"  ,ips200_x_max-10*7,160,0,0,0,                nfunc,nfunc,nfunc},
         {2,"encoder_left"   ,ips200_x_max-10*7,180,0,0,0,                nfunc,nfunc,nfunc},
-
-    {1,"carstatue",0,40,0,0,0},
+    {1,"pid_s_param",0,40,0,0,0},
+        {2,"p_S",         ips200_x_max-10 * 7, 20,  0,0,1,  S_PIDsub_p,           S_PIDadd_p,          nfunc},  
+        {2,"i_S",         ips200_x_max-10 * 7, 40,  0,0,1,  S_PIDsub_i,           S_PIDadd_i,          nfunc},  
+        {2,"d_S",         ips200_x_max-10 * 7, 60,  0,0,1,  S_PIDsub_d,           S_PIDadd_d,          nfunc},  
+        {2,"outputmax", ips200_x_max-10 * 7, 80,  0,0,0,    S_PIDsub_outputmax,  S_PIDadd_outputmax,  nfunc},
+        {2,"outputmin", ips200_x_max-10 * 7, 100, 0,0,0,    nfunc             ,  nfunc             ,  nfunc},
+        {2,"reset_S",     ips200_x_max-10 * 7, 120, 0,0,1,  PID_init, nfunc , nfunc},
+    {1,"carstatue",0,60,0,0,0},
         {2,"v_left"         ,ips200_x_max-10*7,20,0,0,1,                nfunc,nfunc,nfunc},
         {2,"v_right"        ,ips200_x_max -10*7,40,0,0,1,                nfunc,nfunc,nfunc},
         {2,"encoder_right"  ,ips200_x_max-10*7,60,0,0,0,                nfunc,nfunc,nfunc},
         {2,"encoder_left"   ,ips200_x_max-10*7,80,0,0,0,                start_car,nfunc,nfunc},
-    {1,"START_THECAR",0,60,0,0,0},
+    {1,"START_THECAR",0,80,0,0,0},
 
 
     {1,"end",0,0,0,0,0}//不可删去
@@ -116,7 +132,8 @@ void update(void)
                 menu[i].value_i=Encoder_GetInfo_L();
             }
             struct pid_v *pid_ptr = PID_vget_param();
-            
+            struct steer_pid *pid_ptr1 = SPID_vget_param();
+
             
             //PID控制
             if(strcmp(menu[i].str, "p")==0)
@@ -143,6 +160,29 @@ void update(void)
             {
                 menu[i].value_f=pid_ptr->output_max;
             }
+            if(strcmp(menu[i].str, "p_S")==0)
+            {
+                menu[i].value_f=pid_ptr1->p;
+            }
+            if(strcmp(menu[i].str, "i_S")==0)
+            {
+                menu[i].value_f=pid_ptr1->i;
+            }
+            if(strcmp(menu[i].str, "d_S")==0)
+            {
+                menu[i].value_f=pid_ptr1->d;
+            }           
+            if(strcmp(menu[i].str, "outputmax")==0)
+            {
+                menu[i].value_i=pid_ptr1->outputmax;
+
+            }
+                        if(strcmp(menu[i].str, "outputmin")==0)
+            {
+                menu[i].value_i=-pid_ptr1->outputmax;
+
+            }
+
             
             //图象处理
 

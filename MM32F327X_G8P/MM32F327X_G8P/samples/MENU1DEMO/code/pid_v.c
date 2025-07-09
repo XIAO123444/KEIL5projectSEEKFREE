@@ -9,9 +9,7 @@
  
  
  
-// float integral2=0;
-// float derivative2=0;
-//  float lasterror2=0;
+
   struct pid_v
 {
     float output_max;       //Êä³öÏÞ·ù   
@@ -48,23 +46,39 @@ void PID_vset_param(struct pid_v* p)
 }
 int pid_control1(int target1)//×óÂÖ
 {
-     ERR= (float)target1 - (float)Encoder_GetInfo_L();  
+     ERR= (float)target1 - (float)Encoder_GetInfo_L();
     add_ccr=PID_V.p*(ERR-LastERR)+PID_V.i*ERR+PID_V.d*(ERR+LastLastERR-2*LastERR);
-    if(add_ccr<-1||add_ccr>1)
+    if(1)
     {
         pwm_ccr+=add_ccr;
     }
-    if(pwm_ccr>6000)
-        pwm_ccr=6000;
-    if(pwm_ccr<0)
-        pwm_ccr=0;
+    if(pwm_ccr>5000)
+        pwm_ccr=5000;
+    if(pwm_ccr<-5000)
+        pwm_ccr=-5000;
     LastLastERR=LastERR;
     LastERR=ERR;
-    printf("%d,%d\n",Encoder_GetInfo_L(),target1);
     return (int)pwm_ccr;
 }
 
 
+
+int pid_control2(int target2)//ÓÒÂÖ
+{
+     ERR1= (float)target2 - (float)Encoder_GetInfo_R();  
+    add_ccr1=PID_V.p*(ERR1-LastERR1)+PID_V.i*ERR1+PID_V.d*(ERR1+LastLastERR1-2*LastERR1);
+    if(add_ccr1<-1||add_ccr1>1)
+    {
+        pwm_ccr1+=add_ccr1;
+    }
+    if(pwm_ccr1>5000)
+        pwm_ccr1=5000;
+    if(pwm_ccr1<-5000)
+        pwm_ccr1=-5000;
+    LastLastERR1=LastERR1;
+    LastERR1=ERR1;
+    return (int)pwm_ccr1;
+}
 
 
 

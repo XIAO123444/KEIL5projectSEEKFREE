@@ -71,12 +71,16 @@
 #include "photo_chuli.h"
 #include "screen.h"
 #include "track.h"
-
+#include "steer_pid.h"
 bool save_flag=false;
+bool stop_flag1;
 extern uint8 leftline_num;//左线点数量
 extern uint8 rightline_num;//右线点数量
 extern struct pid_v PID_V;                  //pid_V
+extern struct steer_pid S_PID;
 extern bool start_flag;
+extern int current_state;
+extern int speed; 
 void all_init(void)
 {
     clock_init(SYSTEM_CLOCK_120M);//必须最先开启时钟
@@ -87,6 +91,9 @@ void all_init(void)
     Key_init();                     //按键初始化
     Encoder_Init();                 //编码器初始化
     motor_init();
+//    pit_init(TIM1_PIT,5);
+//    interrupt_set_priority(TIM1_UP_IRQn, 1);
+//    
     while(1)//摄像头... 
     {
         if(mt9v03x_init())
@@ -112,7 +119,6 @@ void flash_save(void)
     if(save_flag)
     {
         if(flash_check(100, 0)){flash_erase_page(100, 0);}
-        struct pid_v *pid_ptr = PID_vget_param(); 
         flash_buffer_clear();
         
         //100,0储存pid_v的数据
@@ -126,11 +132,17 @@ void flash_save(void)
         flash_write_page_from_buffer(100,0);        // 向指定 Flash 扇区的页码写入缓冲区数据
 
         //100,1储存图象处理的数据
-        flash_buffer_clear();
         
         
         if(flash_check(100, 1)){flash_erase_page(100, 1);}
+        flash_buffer_clear();
 
+        flash_union_buffer[0].float_type=S_PID.p;
+        flash_union_buffer[1].float_type=S_PID.i;    
+        flash_union_buffer[2].float_type=S_PID.d;
+        flash_union_buffer[3].float_type=S_PID.outputmax;
+        flash_union_buffer[4].float_type=S_PID.outputmin;
+        
         flash_erase_page(100,1);
         flash_write_page_from_buffer(100,1);        // 向指定 Flash 扇区的页码写入缓冲区数据
 
@@ -142,26 +154,30 @@ void flash_save(void)
 int main (void)
 {
     all_init();
-
-    while(1){ 
+    stop_flag1=false;
+    while(!stop_flag1)
+    { 
         Key_Scan();
         Menu_control();
-       flash_save();
+        flash_save();
         if(mt9v03x_finish_flag)
-        {
+        { 
             image_boundary_process();
-            switch_trackline();
-            ips200_show_uint(0, 200, leftline_num, 3); 
-            ips200_show_uint(0, 216, rightline_num, 3);
-            ips200_show_gray_image(0,120,(const uint8 *)mt9v03x_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);
-            show_line();
+            if(current_state==1)
+            {
+
+                ips200_show_uint(0, 280, output_middle(), 3);     
+                ips200_show_gray_image(0,120,(const uint8 *)mt9v03x_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);
+                show_line();
+                stop_flag1= stop_flag();
+
+            }
 
             mt9v03x_finish_flag = 0;
             
         }        
-        motor_run(0,pid_control1(3000));//左是右
-       }
-    
+    }
+        
 }
 
 

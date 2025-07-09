@@ -88,4 +88,5 @@
   ../../libraries/components/fatfs/source\ffconf.h \
   ../../libraries/components/fatfs/source\ff.h ../code\menu.h \
   ../code\encoder.h ../code\key.h ../code\pid_v.h ../code\flash.h \
-  ../code\motor.h ../code\photo_chuli.h ../code\screen.h ../code/track.h
+  ../code\motor.h ../code\photo_chuli.h ../code\screen.h ../code/track.h \
+  ../code\steer_pid.h

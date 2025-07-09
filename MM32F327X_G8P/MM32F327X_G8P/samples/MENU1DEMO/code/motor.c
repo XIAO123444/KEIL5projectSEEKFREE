@@ -18,7 +18,7 @@ void motor_init()
 }
 //PWM_DUTY_MAX=10000
 
-void motor_run(uint16 a,uint16 b) 
+void motor_run(int16 a,int16 b) 
 {
 
     if(0 <= a)                                                           // Õý×ª

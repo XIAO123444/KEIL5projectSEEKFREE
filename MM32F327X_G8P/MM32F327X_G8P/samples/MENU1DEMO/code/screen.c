@@ -10,7 +10,6 @@ extern uint16 leftline[MT9V03X_H];
 extern uint16 rightline[MT9V03X_H];
 void show_line(void){
     for(uint16 i = 0; i < MT9V03X_H; i = i + 2){
-        ips200_draw_point((uint16)trackline[i], i, RGB565_BLACK);//ºÚÉ«¸ú×Ù
     }
     for(uint16 i = 0; i < MT9V03X_H; i ++){
         ips200_draw_point((uint16)leftline[i], i+120, RGB565_RED);//ºìÉ«×óÏß

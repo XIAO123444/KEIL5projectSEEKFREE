@@ -11,6 +11,7 @@
 ".\objects\photo_chuli.o"
 ".\objects\screen.o"
 ".\objects\track.o"
+".\objects\streer_pid.o"
 ".\objects\zf_common_clock.o"
 ".\objects\zf_common_debug.o"
 ".\objects\zf_common_fifo.o"

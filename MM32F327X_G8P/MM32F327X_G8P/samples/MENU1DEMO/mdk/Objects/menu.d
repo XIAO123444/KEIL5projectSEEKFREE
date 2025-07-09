@@ -87,4 +87,4 @@
   ../../libraries/zf_device\zf_device_wireless_uart.h \
   ../../libraries/components/fatfs/source\ffconf.h \
   ../../libraries/components/fatfs/source\ff.h ../code/pid_v.h \
-  ../code/encoder.h ../code/key.h
+  ../code/encoder.h ../code/key.h ../code/steer_pid.h
