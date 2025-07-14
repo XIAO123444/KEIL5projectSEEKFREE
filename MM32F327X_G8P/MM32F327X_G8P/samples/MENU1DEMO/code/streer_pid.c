@@ -1,5 +1,7 @@
 #include "steer_pid.h"
 #include "photo_chuli.h"
+#include "track.h"
+
 struct steer_pid S_PID;
 void PID_init(void)
 {
@@ -22,32 +24,38 @@ struct steer_pid* SPID_vget_param(void)
 {
     return &S_PID;
 }
-
+void S_PID_CAL_init(void)
+{
+    pit_ms_init(TIM7_PIT,20);
+    interrupt_set_priority(TIM7_IRQn, 4);
+}
 int S_PID_CAL()
 {
-    int16 measure=output_middle();
+    int16 measure=output_middle(); 
+    //int16 measure =output_middle2();
     error = 94-(float)measure;//大于0的时候是左偏移<0右偏
     intgral+=error;
     derivative=error-Lasterror;
     int result=( int )(S_PID.p*error+S_PID.i*intgral+S_PID.d*derivative);
-    if(intgral>80)
+    if(intgral>10)
     {
-        intgral=80;
+        intgral=10;
     }
-    if(intgral<-80)
+    if(intgral<-10)
     {
-        intgral=-80;
+        intgral= -10;
     }
-    if(result>140)
+    if(result>30)
     {
-        result=140;
+        result=30;
     }
-    if(result<-140)
+    if(result<-30)
     {
-        result=-140;
+        result=-30;
 
     }
     Lasterror=error;
+//    printf("%d",result);
     return result;
 }
 

@@ -15,7 +15,7 @@ int p_nearby=0;//记录所属的指针
 int input;
 extern int status;
 extern uint16 w_step,h_step,K,limit;
-
+extern bool save_flag;
 
 
 typedef struct 
@@ -41,15 +41,16 @@ void start_car(void)
 {
     start_flag=true;
 }
-int speed=1000;
+int speed=50;
 void addspeed()
 {
-    speed+=500;
+    speed+=100;
 }
 void subspeed()
 {
-    speed-=500;
+    speed-=100;
 }
+
 MENU menu[]={
     {1,"pid_param",0,20,0,0,0},
         {2,"p",      ips200_x_max-10 * 7, 20,  0,0,1,  pid_sub_p,           pid_add_p,          nfunc},  
@@ -75,7 +76,7 @@ MENU menu[]={
         {2,"v_right"        ,ips200_x_max -10*7,40,0,0,1,                nfunc,nfunc,nfunc},
         {2,"encoder_right"  ,ips200_x_max-10*7,60,0,0,0,                nfunc,nfunc,nfunc},
         {2,"encoder_left"   ,ips200_x_max-10*7,80,0,0,0,                start_car,nfunc,nfunc},
-    {1,"START_THECAR",0,80,0,0,0},
+    {1,"START_THECAR",0,80,0,0,0,Encoder_Init},
 
 
     {1,"end",0,0,0,0,0}//不可删去
@@ -338,6 +339,7 @@ void Menu_control(void)
         case BACK:
         if(menu[p].priority!=1)
         {
+            save_flag=true;
             current_state--;
             p=p_nearby;
             while (menu[p_nearby].priority!=current_state-1)

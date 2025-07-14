@@ -89,11 +89,9 @@ void all_init(void)
 	system_delay_ms(300);
     flash_init();    
     Key_init();                     //按键初始化
-    Encoder_Init();                 //编码器初始化
+//    Encoder_Init();                 //编码器初始化
     motor_init();
-//    pit_init(TIM1_PIT,5);
-//    interrupt_set_priority(TIM1_UP_IRQn, 1);
-//    
+    S_PID_CAL_init();
     while(1)//摄像头... 
     {
         if(mt9v03x_init())
@@ -162,20 +160,22 @@ int main (void)
         flash_save();
         if(mt9v03x_finish_flag)
         { 
+            
             image_boundary_process();
             if(current_state==1)
             {
 
-                ips200_show_uint(0, 280, output_middle(), 3);     
-                ips200_show_gray_image(0,120,(const uint8 *)mt9v03x_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);
+//                ips200_show_uint(0, 280, output_middle(), 3);     
+                ips200_show_gray_image(0,120,(const uint8 *)mt9v03x_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);       //图像处理可注释掉
+                element_check();
                 show_line();
-                stop_flag1= stop_flag();
 
             }
-
+            banmaxian_check();//斑马线和出界保护
             mt9v03x_finish_flag = 0;
             
-        }        
+        } 
+
     }
         
 }

@@ -25,7 +25,5 @@ void flash_init(void)
     S_PID.d                =flash_union_buffer[2].float_type;
     S_PID.outputmax        =flash_union_buffer[3].float_type;
     S_PID.outputmin        =flash_union_buffer[4].float_type;
-    
-    pit_ms_init(TIM7_PIT,2000);
-    interrupt_set_priority(TIM7_IRQn, 10);
+   
 }

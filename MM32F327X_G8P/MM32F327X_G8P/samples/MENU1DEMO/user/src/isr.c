@@ -37,6 +37,7 @@
 #include "pid_v.h"
 #include "motor.h"
 #include "steer_pid.h"
+#include "track.h"
 extern uint32 key1_count;
 extern uint32 key2_count;
 extern uint32 key3_count;
@@ -56,6 +57,8 @@ extern int32 encoder1;
 extern int32 encoder2;
 extern bool save_flag;          //布尔类型flash存储标志
 extern int speed;
+int turn1 =0;
+extern uint16 centerline2[MT9V03X_H];
 //-------------------------------------------------------------------------------------------------------------------
 // 函数简介     TIM1 的定时器更新中断服务函数 启动 .s 文件定义 不允许修改函数名称
 //              默认优先级 修改优先级使用 interrupt_set_priority(TIM1_UP_IRQn, 1);
@@ -63,7 +66,8 @@ extern int speed;
 void TIM1_UP_IRQHandler (void)
 {
     // 此处编写用户代码
-    
+        turn1 =S_PID_CAL();
+
     // 此处编写用户代码
     TIM1->SR &= ~TIM1->SR;                                                      // 清空中断状态
 }
@@ -187,7 +191,7 @@ void TIM5_IRQHandler (void)
 
 //-------------------------------------------------------------------------------------------------------------------
 // 函数简介     TIM6 的定时器中断服务函数 启动 .s 文件定义 不允许修改函数名称
-//              默认优先级 修改优先级使用 interrupt_set_priority(TIM6_IRQn, 1);
+//              默认优先级 修改优先级使用 interrupt_set_priority(TIM6_IRQn,  1);
 //-------------------------------------------------------------------------------------------------------------------
 void TIM6_IRQHandler (void)
 {
@@ -196,10 +200,11 @@ void TIM6_IRQHandler (void)
 	encoder_clear_count(TIM3_ENCODER);
 	encoder2=encoder_get_count(TIM4_ENCODER);
 	encoder_clear_count(TIM4_ENCODER);
-    int turn1 =S_PID_CAL();
-    int dutyr =pid_control2(100+turn1);
-    int dutyl = pid_control1(100-turn1);
-    ;
+    turn1=80*S_PID_CAL();
+    int outpute =pid_V_comon(40 );
+    int dutyr =outpute+turn1;
+    int dutyl = outpute-turn1;
+    
     motor_run(dutyr,dutyl );//右电机，左电机
 
     // 此处编写用户代码
@@ -213,7 +218,6 @@ void TIM6_IRQHandler (void)
 void TIM7_IRQHandler (void)
 {
     // 此处编写用户代码
-    save_flag=true;
 
     // 此处编写用户代码
     TIM7->SR &= ~TIM7->SR;                                                      // 清空中断状态
@@ -224,7 +228,7 @@ void TIM7_IRQHandler (void)
 //              默认优先级 修改优先级使用 interrupt_set_priority(TIM8_UP_IRQn, 1);
 //-------------------------------------------------------------------------------------------------------------------
 void TIM8_UP_IRQHandler (void)
-{
+{  
     tsl1401_collect_pit_handler();
     // 此处编写用户代码
 

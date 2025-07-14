@@ -87,4 +87,5 @@
   ../../libraries/zf_device\zf_device_wireless_uart.h \
   ../../libraries/components/fatfs/source\ffconf.h \
   ../../libraries/components/fatfs/source\ff.h ../user/inc\isr.h \
-  ../code\pid_v.h ../code\motor.h ../code\steer_pid.h
+  ../code\pid_v.h ../code\motor.h ../code\steer_pid.h ../code\track.h \
+  ../code/photo_chuli.h

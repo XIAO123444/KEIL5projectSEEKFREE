@@ -13,8 +13,9 @@ struct pid_v {  // 完整定义
 
 extern struct pid_v PID_V;
  
-int16 pid_control1(int16 target1);
-int16 pid_control2(int16 target2);
+//int16 pid_control1(int16 target1);
+//int16 pid_control2(int16 target2);
+int pid_V_comon(int target);
 
 
 

@@ -6,18 +6,23 @@
  */
 #include "photo_chuli.h"
 #include "math.h"
-uint16 centerline[MT9V03X_H];
-uint16 leftline[MT9V03X_H];
-uint16 rightline[MT9V03X_H];
-uint16 rightfollowline[MT9V03X_H];
-uint16 leftfollowline[MT9V03X_H];
+int16 centerline[MT9V03X_H];
+int16 leftline[MT9V03X_H];
+int16 rightline[MT9V03X_H];
+int16 rightfollowline[MT9V03X_H];
+int16 leftfollowline[MT9V03X_H];
 
-
+int16 Right_Down_Find=0;
+int16 Left_Down_Find=0;
+int16 Right_Up_Find=0;
+int16 Left_Up_Find=0;
 
 uint8 leftline_num;//左线点数量
 uint8 rightline_num;//右线点数量
-uint16 sar_thre = 17;//差比和阈值
+int16 sar_thre = 17;//差比和阈值
 uint8 pix_per_meter = 20;//每米的像素数
+extern bool stop_flag1;
+
 
 int right_down_line =0;
 //逐行寻找边界点
@@ -39,7 +44,7 @@ void image_boundary_process(void){
         }
         //逐行作差比和 
         difsum_left(row,start_col);
-        difsum_right(row,start_col);
+        difsum_right(row,start_col); 
         centerline[row] = 0.5 * (rightline[row] + leftline[row]);
     }
 }
@@ -47,7 +52,7 @@ void image_boundary_process(void){
 void difsum_left(uint8 y,uint8 x){
     float sum,dif,sar;//和，差，比
     uint8 col;//列
-    uint8 mov = 2;//每次作差后的移动量,默认为2，可以根据画面分辨率调整
+    uint8 mov = 3;//每次作差后的移动量,默认为2，可以根据画面分辨率调整
     //计算第x行的左边界
     leftline[y] = 0;//未找到左边界时输出为0
     for(col = x; col >= mov + 1; col -= mov){
@@ -65,7 +70,7 @@ void difsum_left(uint8 y,uint8 x){
 void difsum_right(uint8 y,uint8 x){
     float sum,dif,sar;//和，差，比
     uint8 col;//列
-    uint8 mov = 2;//每次作差后的移动量,默认为2，可以根据画面分辨率调整
+    uint8 mov = 3;//每次作差后的移动量,默认为2，可以根据画面分辨率调整
     //计算第x行的左边界
     rightline[y] = MT9V03X_W - 1;//未找到右边界时输出为187
     for(col = x; col <= MT9V03X_W - mov - 1; col += mov){
@@ -79,16 +84,31 @@ void difsum_right(uint8 y,uint8 x){
         }
     }
 }
+void banmaxian_check(void)
+{
+    int sum =0;
+    for(int i=94;i>5;i--)
+    {
+        if(mt9v03x_image[ MT9V03X_H - 5][i]<80)
+        {
+            sum++;
+        }
+        if (sum>MT9V03X_W*0.8)
+        {
+            stop_flag1=true;
+        }
+    }
+}
 /*
 ------------------------------------------------------------------------------------------------------------------
 函数简介     输出中点位置：这里是从底向上数第四个
 参数说明     无
-返回参数     uint16，中点的横坐标
+返回参数     int16，中点的横坐标
 使用示例     
 备注信息     
 -------------------------------------------------------------------------------------------------------------------
 */
-uint16 output_middle(void)
+int16 output_middle(void)
 {
     return centerline[MT9V03X_H-4];
 }
@@ -96,42 +116,193 @@ uint16 output_middle(void)
 
 bool stop_flag(void)
 {
-    int count ;
-    for(int i= 0;i<MT9V03X_H;i++)
-    {
-        for(int j=0;j<MT9V03X_W;j++)
-        {
-            if(mt9v03x_image[i][j]<30)
-            {
-                    count++;
-                
-            }
-        }
-    }
-    if(count>MT9V03X_H*MT9V03X_W)
+    if(leftline_num<0.1*MT9V03X_H   &&rightline_num<0.1*MT9V03X_H)
     {
         return true;
     }
-    else
+    else return false;
+}
+//十字判断
+//十字判断
+//十字判断
+//十字判断
+//十字判断
+//十字判断
+
+
+/*-------------------------------------------------------------------------------------------------------------------
+  @brief     找下面的两个拐点，供十字使用
+  @param     搜索的范围起点，终点
+  @return    修改两个全局变量
+             Right_Down_Find=0;
+             Left_Down_Find=0;
+  Sample     Find_Down_Point(int start,int end)
+  @note      运行完之后查看对应的变量，注意，没找到时对应变量将是0
+-------------------------------------------------------------------------------------------------------------------*/
+void Find_Down_Point(int start,int end)
+{
+    int i,t;
+    Right_Down_Find=0;
+    Left_Down_Find=0;
+    if(start<end)
     {
-        return false;
+        t=start;
+        start=end;
+        end=t;
+    }
+    if(start>=MT9V03X_H-1-5)//下面5行数据不稳定，不能作为边界点来判断，舍弃
+        start=MT9V03X_H-1-5;
+    if(end<=MT9V03X_H-10)
+        end=MT9V03X_H-10;
+    if(end<=5)
+       end=5;
+    for(i=start;i>=end;i--)
+    {
+        if(Left_Down_Find==0&&//只找第一个符合条件的点
+           abs(leftline[i]-leftline[i+1])<=5&&//角点的阈值可以更改
+           abs(leftline[i+1]-leftline[i+2])<=5&&
+           abs(leftline[i+2]-leftline[i+3])<=5&&
+              (leftline[i]-leftline[i-2])>=8&&
+              (leftline[i]-leftline[i-3])>=15&&
+              (leftline[i]-leftline[i-4])>=15)
+        {
+            Left_Down_Find=i;//获取行数即可
+        }
+        if(Right_Down_Find==0&&//只找第一个符合条件的点
+           abs(rightline[i]-rightline[i+1])<=5&&//角点的阈值可以更改
+           abs(rightline[i+1]-rightline[i+2])<=5&&
+           abs(rightline[i+2]-rightline[i+3])<=5&&
+              (rightline[i]-rightline[i-2])<=-8&&
+              (rightline[i]-rightline[i-3])<=-15&&
+              (rightline[i]-rightline[i-4])<=-15)
+        {
+            Right_Down_Find=i;
+        }
+        if(Left_Down_Find!=0&&Right_Down_Find!=0)//两个找到就退出
+        {
+            break;
+        }
+    }
+}
+ 
+/*-------------------------------------------------------------------------------------------------------------------
+  @brief     找上面的两个拐点，供十字使用
+  @param     搜索的范围起点，终点
+  @return    修改两个全局变量
+             Left_Up_Find=0;
+             Right_Up_Find=0;
+  Sample     Find_Up_Point(int start,int end)
+  @note      运行完之后查看对应的变量，注意，没找到时对应变量将是0
+-------------------------------------------------------------------------------------------------------------------*/
+void Find_Up_Point(int start,int end)
+{
+    int i,t;
+    Left_Up_Find=0;
+    Right_Up_Find=0;
+    if(start>end)
+    {
+        t=start;
+        start=end;
+        end=t;
+    }
+    //start<end由上往下
+    if(end>=MT9V03X_H-5)
+        end=MT9V03X_H-5;
+//    if(end<=5)//及时最长白列非常长，也要舍弃部分点，防止数组越界
+//        end=5;
+    if(start<=40)//下面5行数据不稳定，不能作为边界点来判断，舍弃
+        start=40;
+    for(i=start;i<=end;i++)
+    {
+        if(Left_Up_Find==0&&//只找第一个符合条件的点
+           abs(leftline[i]-leftline[i-1])<=5&&
+           abs(leftline[i-1]-leftline[i-2])<=5&&
+           abs(leftline[i-2]-leftline[i-3])<=5&&
+              (leftline[i]-leftline[i+2])>=8&&
+              (leftline[i]-leftline[i+3])>=15&&
+              (leftline[i]-leftline[i+4])>=15)
+        {
+            Left_Up_Find=i;//获取行数即可
+            ips200_show_int(0,280,Left_Up_Find,8);
+
+
+        }
+        if(Right_Up_Find==0&&//只找第一个符合条件的点
+           abs(rightline[i]-rightline[i-1])<=5&&//下面两行位置差不多
+           abs(rightline[i-1]-rightline[i-2])<=5&&
+           abs(rightline[i-2]-rightline[i-3])<=5&&
+              (rightline[i]-rightline[i+2])<=-8&&
+              (rightline[i]-rightline[i+3])<=-15&&
+              (rightline[i]-rightline[i+4])<=-15)
+        {
+            Right_Up_Find=i;//获取行数即可
+
+        }
+        if(Left_Up_Find!=0&&Right_Up_Find!=0)//下面两个找到就出去
+        {
+            break;
+        }
+    }
+    if(abs(Right_Up_Find-Left_Up_Find)>=50)//纵向撕裂过大，视为误判
+    {
+        Right_Up_Find=0;
+        Left_Up_Find=0;
     }
 }
 
 
 //圆环判断
 //1.找圆环
-/*
-------------------------------------------------------------------------------------------------------------------
-函数简介     找右侧的角点
-参数说明     uint8的起点和终点
-返回参数     返回角点横坐标int类型
-使用示例     
-备注信息     
--------------------------------------------------------------------------------------------------------------------
-*/
-//找右侧角点
-int find_pointright(uint8 start,uint8 end)
+
+/*-------------------------------------------------------------------------------------------------------------------
+  @brief     左下角点检测
+  @param     起始行，终止行
+  @return    返回角点所在的行数，找不到返回0
+  Sample     left_down_guai[0]=Find_Left_Down_Point(MT9V03X_H-1,20);
+  @note      角点检测阈值可根据实际值更改
+-------------------------------------------------------------------------------------------------------------------*/
+int Find_Left_Down_Point(int start,int end)//找左下角点，返回值是角点所在的行数
+ {
+    int i,t;
+    int left_down_line=0;
+    if(leftline_num<=0.1*MT9V03X_H)//大部分都丢线，没有拐点判断的意义
+       return left_down_line;
+    if(start<end)//--访问，要保证start>end
+    {
+        t=start;
+        start=end;
+        end=t;
+    }
+    if(start>=MT9V03X_H-1-5)//下面5行上面5行数据不稳定，不能作为边界点来判断，舍弃
+        start=MT9V03X_H-1-5;//另一方面，当判断第i行时，会访问到i+3和i-4行，防止越界
+    if(end<=MT9V03X_H-5)
+        end=MT9V03X_H-5;
+    if(end<=5)
+       end=5;
+    for(i=start;i>=end;i--)
+    {
+        if(left_down_line==0&&//只找第一个符合条件的点
+           abs(leftline[i]-leftline[i+1])<=5&&//角点的阈值可以更改
+           abs(leftline[i+1]-leftline[i+2])<=5&&  
+           abs(leftline[i+2]-leftline[i+3])<=5&&
+              (leftline[i]-leftline[i-2])>=5&&
+              (leftline[i]-leftline[i-3])>=10&&
+              (leftline[i]-leftline[i-4])>=10)
+        {
+            left_down_line=i;//获取行数即可
+            break;
+        }
+    }
+    return left_down_line;
+}
+/*-------------------------------------------------------------------------------------------------------------------
+  @brief     右下角点检测
+  @param     起始行，终止行
+  @return    返回角点所在的行数，找不到返回0
+  Sample     right_down_guai[0]=Find_Left_Down_Point(MT9V03X_H-1,20);
+  @note      角点检测阈值可根据实际值更改
+-------------------------------------------------------------------------------------------------------------------*/
+int Find_Right_Down_Point(uint8 start,uint8 end)
 {
     right_down_line=0;
     if(start>MT9V03X_H-6)
@@ -147,9 +318,13 @@ int find_pointright(uint8 start,uint8 end)
     }
     for(int i=start;i>=end;i--)
     {
-        if(right_down_line==0&&abs(rightline[i]
-            -rightline[i+1]<=5)&&rightline[i]-rightline[i-2]
-        <=-10&&rightline[i]-rightline[i-3]<=-10)
+        if(right_down_line==0&&//只找第一个符合条件的点
+           abs(rightline[i]-rightline[i+1])<=5&&//角点的阈值可以更改
+           abs(rightline[i+1]-rightline[i+2])<=5&&  
+           abs(rightline[i+2]-rightline[i+3])<=5&&
+              (rightline[i]-rightline[i-2])>=5&&
+              (rightline[i]-rightline[i-3])>=10&&
+              (rightline[i]-rightline[i-4])>=10)
         {
             right_down_line=i;
             break;
@@ -186,16 +361,17 @@ int continuity_right(uint8 start,uint8 end)
     }
     for(i=start;i>=end;i--)
     {
-        if(abs(rightline[i]-rightline[i-1])>=5)//连续性阈值是5，可更改
+        if(abs(rightline[i]-rightline[i-1])>=7)//连续性阈值是5，可更改
        {
             continuity_change_flag=i;                                         //在i处不连续了
+
             break;
        }
 
     }
     //    printf("continuity_right%d,\n",continuity_change_flag);
 
-    return continuity_change_flag;
+    return continuity_change_flag-end-10;
 }
 /*
 ------------------------------------------------------------------------------------------------------------------
@@ -206,6 +382,8 @@ int continuity_right(uint8 start,uint8 end)
 备注信息     
 -------------------------------------------------------------------------------------------------------------------
 */
+//确定连续性函数（左侧）
+
 int continuity_left(uint8 start,uint8 end)
 {
     int i;
@@ -224,18 +402,19 @@ int continuity_left(uint8 start,uint8 end)
     }
     for(i=start;i>=end;i--)
     {
-        if(abs(leftline[i]-leftline[i-1])>=5)//连续性阈值是5，可更改
+        if(abs(leftline[i]-leftline[i-1])>=7)//连续性阈值是5，可更改
        {
+
             continuity_change_flag=i;                                         //在i处不连续了
+
             break;
        }
 
     }
     //    printf("continuity_left%d,\n",continuity_change_flag);
-
-    return continuity_change_flag;
+    return continuity_change_flag-end-10;
 }
-//单调性变化
+//单调性变化s
 int montonicity_right(uint8 start,uint8 end)
 {
     int i;
@@ -280,7 +459,6 @@ int montonicity_right(uint8 start,uint8 end)
 }
 
 
-//判断圆环？左侧连续，右侧不连续，右侧有角点，右侧有单调性变化。
 /*
 ------------------------------------------------------------------------------------------------------------------
 函数简介     补线左
@@ -290,7 +468,7 @@ int montonicity_right(uint8 start,uint8 end)
 备注信息     增长率dx等于x1-x2/y1-y2
 -------------------------------------------------------------------------------------------------------------------
 */
-void draw_Lline_k(uint16 startx, uint16 starty, uint16 endy, float dx) {
+void draw_Lline_k(int16 startx, int16 starty, int16 endy, float dx) {
     if (dx == 0) {
         for (int i = (starty< endy)?starty:endy; i <=(starty>endy)?starty:endy; i++) {
             leftfollowline[i] = startx;
@@ -299,7 +477,7 @@ void draw_Lline_k(uint16 startx, uint16 starty, uint16 endy, float dx) {
     }
     int step = (starty < endy) ? 1 : -1;
     for (int i = starty; i != endy; i += step) {
-        leftfollowline[i] = startx + (uint16)((i - starty) * dx + 0.5f);
+        leftfollowline[i] = startx + (int16)((i - starty) * dx + 0.5f);
     }
 }
 /*
@@ -311,17 +489,100 @@ void draw_Lline_k(uint16 startx, uint16 starty, uint16 endy, float dx) {
 备注信息     增长率dx等于x1-x2/y1-y2
 -------------------------------------------------------------------------------------------------------------------
 */
-void draw_Rline_k(uint16 startx, uint16 starty, uint16 endy, float dx) {
+void draw_Rline_k(int16 startx, int16 starty, int16 endy, float dx) {
 
 
-    if (dx == 0) {
-        for (int i = (starty< endy)?starty:endy; i <=(starty>endy)?starty:endy; i++) {
+    if (dx == 0) 
+    {
+        for (int i = (starty< endy)?starty:endy; i <=(starty>endy)?starty:endy; i++) 
+        {
             rightfollowline[i] = startx;
         }
         return;
     }
     int step = (starty < endy) ? 1 : -1;
     for (int i = starty; i != endy; i += step) {
-        rightfollowline[i] = startx + (uint16)((i - starty) * dx + 0.5f); 
+        rightfollowline[i] = startx + (int16)((i - starty) * dx + 0.5f); 
     }
 }
+/*
+------------------------------------------------------------------------------------------------------------------
+函数简介     右两点间连线
+参数说明     起点xy，终点xy
+返回参数     无
+使用示例     
+备注信息     
+-------------------------------------------------------------------------------------------------------------------
+*/
+void add_Rline_k(int16 startx, int16 starty, int16 endy,int16 endx)
+{
+    float dx=(float)(endx-startx)/(float)(endy-starty);
+    draw_Rline_k(startx,starty,endy,dx);
+}
+/*
+------------------------------------------------------------------------------------------------------------------
+函数简介     左两点间连线
+参数说明     起点xy，终点xy
+返回参数     无
+使用示例     
+备注信息     
+-------------------------------------------------------------------------------------------------------------------
+*/
+void add_Lline_k(int16 startx, int16 starty, int16 endy,int16 endx)
+{
+    float dx=(float)(endx-startx)/(float)(endy-starty);
+    draw_Lline_k(startx,starty,endy,dx);
+}
+/*
+------------------------------------------------------------------------------------------------------------------
+函数简介     自上而下补左线
+参数说明     起点
+返回参数     无
+使用示例     
+备注信息     
+-------------------------------------------------------------------------------------------------------------------
+*/
+void lenthen_Left_bondarise(int16 start)
+{
+    if(start<7){start=7;}
+    if(start>MT9V03X_H-7){start=MT9V03X_H-7;}
+    float dx=(float)(leftline[start]-leftline[start-7])/7;
+    for(int i=start;i<MT9V03X_H-1;i++)
+    {
+        if((float)leftline[start]+(float)(dx*(i-start))<0||(float)leftline[start]+dx*(float)(i-start)>(float)MT9V03X_W)
+        {
+            break;
+        }
+        else
+        {
+            leftfollowline[i]=(int)((float)leftline[start]+dx*(float)(i-start));
+        }
+    }
+}
+ /*
+------------------------------------------------------------------------------------------------------------------
+函数简介     自上而下补右线
+参数说明     起点
+返回参数     无
+使用示例     
+备注信息     
+-------------------------------------------------------------------------------------------------------------------
+*/  
+void lenthen_Right_bondarise(int16 start)
+{
+    if(start<7){start=7;}
+    if(start>MT9V03X_H-7){start=MT9V03X_H-7;}
+    float dx=(float)(rightline[start]-rightline[start-7])/7;
+    for(int i=start;i<MT9V03X_H-1;i++)
+    {
+        if((float)rightline[start]+dx*(i-start)<MT9V03X_W-5||(float)rightline[start]+dx*(float)(i-start)<0)
+        {
+            break;
+        }
+        else
+        {
+            rightfollowline[i]=(int)((float)rightline[start]+dx*(float)(i-start));
+        }
+    }
+}
+   

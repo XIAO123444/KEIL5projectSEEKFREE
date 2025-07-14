@@ -10,6 +10,8 @@
 #include "zf_common_headfile.h"
 #include "photo_chuli.h"
 
+void element_check(void); 
+int16 output_middle2(void);
 
 
 
