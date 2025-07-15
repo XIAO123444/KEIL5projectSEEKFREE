@@ -23,6 +23,8 @@ int16 sar_thre = 17;//差比和阈值
 uint8 pix_per_meter = 20;//每米的像素数
 extern bool stop_flag1;
 
+float dx1[5]={0};
+float dx2[5]={0};
 
 int right_down_line =0;
 //逐行寻找边界点
@@ -38,10 +40,14 @@ void image_boundary_process(void){
         //选用上一行的中点作为下一行计算起始点，节省速度，同时防止弯道的左右两边均出现与画面一侧
         if(row != MT9V03X_H - 1){
             start_col = (uint8)(0.4 * centerline[row] + 0.3 * start_col + 0.1 * MT9V03X_W);//一阶低通滤波，防止出现噪点影响下一行的起始点
+
+
         }
         else if(row == MT9V03X_H - 1){
             start_col = MT9V03X_W / 2;
         }
+        if(start_col<MT9V03X_W/2-30){start_col=MT9V03X_W/2-30;}
+        if(start_col>MT9V03X_W/2+30){start_col=MT9V03X_W/2+30;}
         //逐行作差比和 
         difsum_left(row,start_col);
         difsum_right(row,start_col); 
@@ -87,21 +93,30 @@ void difsum_right(uint8 y,uint8 x){
 void banmaxian_check(void)
 {
     int sum =0;
-    for(int i=94;i>5;i--)
+    for(int i=94;i>40;i--)
     {
-        if(mt9v03x_image[ MT9V03X_H - 5][i]<80)
+        if(mt9v03x_image[ MT9V03X_H - 5][i]<120)
         {
             sum++;
         }
-        if (sum>MT9V03X_W*0.8)
+
+    }
+        for(int i=94;i<148;i++)
+    {
+        if(mt9v03x_image[ MT9V03X_H - 5][i]<120)
+        {
+            sum++;
+        }
+
+    }
+            if (sum>108*0.4)
         {
             stop_flag1=true;
         }
-    }
 }
 /*
 ------------------------------------------------------------------------------------------------------------------
-函数简介     输出中点位置：这里是从底向上数第四个
+函数简介      输出中点位置：这里是从底向上数第四个
 参数说明     无
 返回参数     int16，中点的横坐标
 使用示例     
@@ -159,22 +174,22 @@ void Find_Down_Point(int start,int end)
     for(i=start;i>=end;i--)
     {
         if(Left_Down_Find==0&&//只找第一个符合条件的点
-           abs(leftline[i]-leftline[i+1])<=5&&//角点的阈值可以更改
-           abs(leftline[i+1]-leftline[i+2])<=5&&
-           abs(leftline[i+2]-leftline[i+3])<=5&&
-              (leftline[i]-leftline[i-2])>=8&&
-              (leftline[i]-leftline[i-3])>=15&&
-              (leftline[i]-leftline[i-4])>=15)
+           abs(leftline[i]-leftline[i+1])<=3&&//角点的阈值可以更改
+           abs(leftline[i+1]-leftline[i+2])<=3&&
+           abs(leftline[i+2]-leftline[i+3])<=3&&
+            ((leftline[i]-leftline[i-2])>=5||leftline[i-2]==0)&&
+            ((leftline[i]-leftline[i-3])>=7||leftline[i-3]==0)&&
+            ((leftline[i]-leftline[i-4])>=7||leftline[i-4]==0))
         {
             Left_Down_Find=i;//获取行数即可
         }
         if(Right_Down_Find==0&&//只找第一个符合条件的点
-           abs(rightline[i]-rightline[i+1])<=5&&//角点的阈值可以更改
-           abs(rightline[i+1]-rightline[i+2])<=5&&
-           abs(rightline[i+2]-rightline[i+3])<=5&&
-              (rightline[i]-rightline[i-2])<=-8&&
-              (rightline[i]-rightline[i-3])<=-15&&
-              (rightline[i]-rightline[i-4])<=-15)
+           abs(rightline[i]-rightline[i+1])<=3&&//角点的阈值可以更改
+           abs(rightline[i+1]-rightline[i+2])<=3&&
+           abs(rightline[i+2]-rightline[i+3])<=3&&
+              ((rightline[i]-rightline[i-2])<=-5||leftline[i-2]==MT9V03X_H-1)&&
+              ((rightline[i]-rightline[i-3])<=-7||leftline[i-2]==MT9V03X_H-1)&&
+              ((rightline[i]-rightline[i-4])<=-7||leftline[i-2]==MT9V03X_H-1  ))
         {
             Right_Down_Find=i;
         }
@@ -208,19 +223,19 @@ void Find_Up_Point(int start,int end)
     //start<end由上往下
     if(end>=MT9V03X_H-5)
         end=MT9V03X_H-5;
-//    if(end<=5)//及时最长白列非常长，也要舍弃部分点，防止数组越界
-//        end=5;
+    if(end<=5)//及时最长白列非常长，也要舍弃部分点，防止数组越界
+        end=5;
     if(start<=40)//下面5行数据不稳定，不能作为边界点来判断，舍弃
         start=40;
     for(i=start;i<=end;i++)
     {
         if(Left_Up_Find==0&&//只找第一个符合条件的点
-           abs(leftline[i]-leftline[i-1])<=5&&
-           abs(leftline[i-1]-leftline[i-2])<=5&&
-           abs(leftline[i-2]-leftline[i-3])<=5&&
-              (leftline[i]-leftline[i+2])>=8&&
-              (leftline[i]-leftline[i+3])>=15&&
-              (leftline[i]-leftline[i+4])>=15)
+           abs(leftline[i]-leftline[i-1])<=3&&
+           abs(leftline[i-1]-leftline[i-2])<=3&&
+           abs(leftline[i-2]-leftline[i-3])<=3&&
+              (leftline[i]-leftline[i+2])>=5&&
+              (leftline[i]-leftline[i+3])>=7&&
+              (leftline[i]-leftline[i+4])>=7)
         {
             Left_Up_Find=i;//获取行数即可
             ips200_show_int(0,280,Left_Up_Find,8);
@@ -228,12 +243,12 @@ void Find_Up_Point(int start,int end)
 
         }
         if(Right_Up_Find==0&&//只找第一个符合条件的点
-           abs(rightline[i]-rightline[i-1])<=5&&//下面两行位置差不多
-           abs(rightline[i-1]-rightline[i-2])<=5&&
-           abs(rightline[i-2]-rightline[i-3])<=5&&
-              (rightline[i]-rightline[i+2])<=-8&&
-              (rightline[i]-rightline[i+3])<=-15&&
-              (rightline[i]-rightline[i+4])<=-15)
+           abs(rightline[i]-rightline[i-1])<=3&&//下面两行位置差不多
+           abs(rightline[i-1]-rightline[i-2])<=3&&
+           abs(rightline[i-2]-rightline[i-3])<=3&&
+              (rightline[i]-rightline[i+2])<=-5&&
+              (rightline[i]-rightline[i+3])<=-7&&
+              (rightline[i]-rightline[i+4])<=-7)
         {
             Right_Up_Find=i;//获取行数即可
 
@@ -250,6 +265,33 @@ void Find_Up_Point(int start,int end)
     }
 }
 
+
+/*
+------------------------------------------------------------------------------------------------------------------
+函数简介     滑动平均滤波
+参数说明     无
+返回参数     无
+使用示例     
+备注信息     
+-------------------------------------------------------------------------------------------------------------------
+*/
+void dx1_left_average(float dx)
+{
+    for(uint8 i=1;i<5;i++)
+    {
+        dx1[i-1]=dx1[i];
+    }
+    dx1[4]=dx;
+}
+
+void dx2_right_average(float dx)
+{
+    for(uint8 i=1;i<5;i++)
+    {
+        dx2[i-1]=dx2[i];
+    }
+    dx2[4]=dx;
+}
 
 //圆环判断
 //1.找圆环
@@ -322,9 +364,9 @@ int Find_Right_Down_Point(uint8 start,uint8 end)
            abs(rightline[i]-rightline[i+1])<=5&&//角点的阈值可以更改
            abs(rightline[i+1]-rightline[i+2])<=5&&  
            abs(rightline[i+2]-rightline[i+3])<=5&&
-              (rightline[i]-rightline[i-2])>=5&&
-              (rightline[i]-rightline[i-3])>=10&&
-              (rightline[i]-rightline[i-4])>=10)
+              ((rightline[i]-rightline[i-2])>=5 ||rightline[i-2]==MT9V03X_W-1)&&
+              ((rightline[i]-rightline[i-3])>=10||rightline[i-3]==MT9V03X_W-1)&&
+              ((rightline[i]-rightline[i-4])>=10||rightline[i-4]==MT9V03X_W-1))
         {
             right_down_line=i;
             break;
@@ -547,15 +589,17 @@ void lenthen_Left_bondarise(int16 start)
     if(start<7){start=7;}
     if(start>MT9V03X_H-7){start=MT9V03X_H-7;}
     float dx=(float)(leftline[start]-leftline[start-7])/7;
+    dx1_left_average(dx);
+    float dx_average=(dx1[0]+dx1[1]+dx1[2]+dx1[3]+dx1[4])/5;
     for(int i=start;i<MT9V03X_H-1;i++)
     {
-        if((float)leftline[start]+(float)(dx*(i-start))<0||(float)leftline[start]+dx*(float)(i-start)>(float)MT9V03X_W)
+        if((float)leftline[start]+(float)(dx_average*(i-start))<0||(float)leftline[start]+dx_average*(float)(i-start)>(float)MT9V03X_W)
         {
             break;
         }
         else
         {
-            leftfollowline[i]=(int)((float)leftline[start]+dx*(float)(i-start));
+            leftfollowline[i]=(int)((float)leftline[start]+dx_average*(float)(i-start));
         }
     }
 }
@@ -573,15 +617,17 @@ void lenthen_Right_bondarise(int16 start)
     if(start<7){start=7;}
     if(start>MT9V03X_H-7){start=MT9V03X_H-7;}
     float dx=(float)(rightline[start]-rightline[start-7])/7;
+    dx2_right_average(dx);
+    float dx_average=(dx2[0]+dx2[1]+dx2[2]+dx2[3]+dx2[4])/5;
     for(int i=start;i<MT9V03X_H-1;i++)
     {
-        if((float)rightline[start]+dx*(i-start)<MT9V03X_W-5||(float)rightline[start]+dx*(float)(i-start)<0)
+        if((float)rightline[start]+dx_average*(i-start)>MT9V03X_W-5||(float)rightline[start]+dx_average*(float)(i-start)<0)
         {
             break;
         }
-        else
+        else 
         {
-            rightfollowline[i]=(int)((float)rightline[start]+dx*(float)(i-start));
+            rightfollowline[i]=(int)((float)rightline[start]+dx_average*(float)(i-start));
         }
     }
 }

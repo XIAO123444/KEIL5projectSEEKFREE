@@ -193,20 +193,19 @@ void TIM5_IRQHandler (void)
 // 函数简介     TIM6 的定时器中断服务函数 启动 .s 文件定义 不允许修改函数名称
 //              默认优先级 修改优先级使用 interrupt_set_priority(TIM6_IRQn,  1);
 //-------------------------------------------------------------------------------------------------------------------
-void TIM6_IRQHandler (void)
+void TIM6_IRQHandler (void) 
 {
     // 此处编写用户代码
 	encoder1=encoder_get_count(TIM3_ENCODER)*(-1);
 	encoder_clear_count(TIM3_ENCODER);
 	encoder2=encoder_get_count(TIM4_ENCODER);
 	encoder_clear_count(TIM4_ENCODER);
-    turn1=80*S_PID_CAL();
-    int outpute =pid_V_comon(40 );
+    turn1=40 *S_PID_CAL();
+    int outpute =pid_V_comon(100 );
     int dutyr =outpute+turn1;
     int dutyl = outpute-turn1;
     
-    motor_run(dutyr,dutyl );//右电机，左电机
-
+    motor_run(dutyr,dutyl );//右  电机，左电机
     // 此处编写用户代码
     TIM6->SR &= ~TIM6->SR;                                                      // 清空中断状态
 }

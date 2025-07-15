@@ -153,25 +153,28 @@ int main (void)
 {
     all_init();
     stop_flag1=false;
-    while(!stop_flag1)
+    while(1)
     { 
+
         Key_Scan();
         Menu_control();
         flash_save();
         if(mt9v03x_finish_flag)
         { 
-            
             image_boundary_process();
             if(current_state==1)
             {
-
-//                ips200_show_uint(0, 280, output_middle(), 3);     
-                ips200_show_gray_image(0,120,(const uint8 *)mt9v03x_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);       //图像处理可注释掉
-                element_check();
+//                 element_check();
                 show_line();
-
+//                ips200_show_int()//显示中间数组
             }
             banmaxian_check();//斑马线和出界保护
+            if(stop_flag1)
+            {
+            pit_disable(TIM6_PIT);
+            motor_run(0,0 );//右电机，左电机
+
+            }
             mt9v03x_finish_flag = 0;
             
         } 
