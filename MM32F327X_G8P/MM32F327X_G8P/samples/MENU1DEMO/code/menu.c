@@ -52,7 +52,7 @@ void subspeed()
 }
 
 MENU menu[]={
-    {1,"pid_param",0,20,0,0,0},
+    {1,"pid_param",0,20,0,0,0,nfunc,nfunc,nfunc},
         {2,"p",      ips200_x_max-10 * 7, 20,  0,0,1,  pid_sub_p,           pid_add_p,          nfunc},  
         {2,"i",      ips200_x_max-10 * 7, 40,  0,0,1,  pid_sub_i,           pid_add_i,          nfunc},  
         {2,"d",      ips200_x_max-10 * 7, 60,  0,0,1,  pid_sub_d,           pid_add_d,          nfunc},  
@@ -64,19 +64,19 @@ MENU menu[]={
         {2,"reset",  ips200_x_max-10 * 7, 140, 0,0,1,  pid_vparam_init, nfunc , nfunc},
         {2,"encoder_right"  ,ips200_x_max-10*7,160,0,0,0,                nfunc,nfunc,nfunc},
         {2,"encoder_left"   ,ips200_x_max-10*7,180,0,0,0,                nfunc,nfunc,nfunc},
-    {1,"pid_s_param",0,40,0,0,0},
+    {1,"pid_s_param",0,40,0,0,0,nfunc,nfunc,nfunc},
         {2,"p_S",         ips200_x_max-10 * 7, 20,  0,0,1,  S_PIDsub_p,           S_PIDadd_p,          nfunc},  
         {2,"i_S",         ips200_x_max-10 * 7, 40,  0,0,1,  S_PIDsub_i,           S_PIDadd_i,          nfunc},  
         {2,"d_S",         ips200_x_max-10 * 7, 60,  0,0,1,  S_PIDsub_d,           S_PIDadd_d,          nfunc},  
         {2,"outputmax", ips200_x_max-10 * 7, 80,  0,0,0,    S_PIDsub_outputmax,  S_PIDadd_outputmax,  nfunc},
         {2,"outputmin", ips200_x_max-10 * 7, 100, 0,0,0,    nfunc             ,  nfunc             ,  nfunc},
         {2,"reset_S",     ips200_x_max-10 * 7, 120, 0,0,1,  PID_init, nfunc , nfunc},
-    {1,"carstatue",0,60,0,0,0},
+    {1,"carstatue",0,60,0,0,0,nfunc,nfunc,nfunc},
         {2,"v_left"         ,ips200_x_max-10*7,20,0,0,1,                nfunc,nfunc,nfunc},
         {2,"v_right"        ,ips200_x_max -10*7,40,0,0,1,                nfunc,nfunc,nfunc},
         {2,"encoder_right"  ,ips200_x_max-10*7,60,0,0,0,                nfunc,nfunc,nfunc},
         {2,"encoder_left"   ,ips200_x_max-10*7,80,0,0,0,                start_car,nfunc,nfunc},
-    {1,"START_THECAR",0,80,0,0,0,Encoder_Init},
+    {1,"START_THECAR",0,80,0,0,0,Encoder_Init,nfunc,nfunc},
 
 
     {1,"end",0,0,0,0,0}//≤ªø……æ»•

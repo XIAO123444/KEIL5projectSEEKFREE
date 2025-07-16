@@ -467,16 +467,6 @@
               <FilePath>..\code\motor.h</FilePath>
             </File>
             <File>
-              <FileName>carstate.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\code\carstate.c</FilePath>
-            </File>
-            <File>
-              <FileName>carstate.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\code\carstate.h</FilePath>
-            </File>
-            <File>
               <FileName>photo_chuli.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\code\photo_chuli.c</FilePath>
@@ -515,6 +505,16 @@
               <FileName>steer_pid.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\code\steer_pid.h</FilePath>
+            </File>
+            <File>
+              <FileName>buzzer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\code\buzzer.c</FilePath>
+            </File>
+            <File>
+              <FileName>buzzer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\code\buzzer.h</FilePath>
             </File>
           </Files>
         </Group>

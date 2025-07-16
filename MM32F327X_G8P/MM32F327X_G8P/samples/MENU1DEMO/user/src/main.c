@@ -164,7 +164,8 @@ int main (void)
             image_boundary_process();
             if(current_state==1)
             {
-//                 element_check();
+//                ips200_show_gray_image(0,120,(const uint8 *)mt9v03x_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);       //图像处理可注释掉
+                element_check();
                 show_line();
 //                ips200_show_int()//显示中间数组
             }

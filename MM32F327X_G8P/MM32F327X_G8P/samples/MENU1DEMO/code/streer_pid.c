@@ -37,21 +37,21 @@ int S_PID_CAL()
     intgral+=error;
     derivative=error-Lasterror;
     int result=( int )(S_PID.p*error+S_PID.i*intgral+S_PID.d*derivative);
-    if(intgral>15)
+    if(intgral>18)
     {
-        intgral=15;
+        intgral=18;
     }
-    if(intgral<-15)
+    if(intgral<-18)
     {
-        intgral= -15;
+        intgral= -18 ;
     }
-    if(result>60)
+    if(result>100)
     {
-        result=60;
+        result=100;
     }
-    if(result<-60)
+    if(result<-100)
     {
-        result=-60;
+        result=-100;
 
     }
     Lasterror=error;
@@ -117,8 +117,8 @@ void S_PIDsub_i(void) {
     }
 }
 void S_PIDsub_d(void) {
-    if (S_PID.d > 0.1) {
-        S_PID.d -= 0.1;
+    if (S_PID.d > 0.01) {
+        S_PID.d -= 0.01;
         if (S_PID.d < 0) S_PID.d = 0;
         // 微分限幅保护
         }

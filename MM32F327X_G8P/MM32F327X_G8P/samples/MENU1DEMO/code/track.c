@@ -1,6 +1,6 @@
 /*
  * track.c
- *  Created on: 2023Äê10ÔÂ24ÈÕ
+ *  Created on: 2023ï¿½ï¿½10ï¿½ï¿½24ï¿½ï¿½
  *      Author: lychee
  */
 #include "track.h"
@@ -8,7 +8,7 @@
 extern int16 centerline[MT9V03X_H];
 extern int16 leftline[MT9V03X_H];
 extern int16 rightline[MT9V03X_H];
-extern uint8 pix_per_meter;//Ã¿Ã×µÄÏñËØÊý
+extern uint8 pix_per_meter;//Ã¿ï¿½×µï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 extern int16 rightfollowline[MT9V03X_H];
 extern int16 leftfollowline[MT9V03X_H];
 int16 centerline2[MT9V03X_H];
@@ -18,7 +18,7 @@ extern int16 Right_Down_Find;
 extern int16 Left_Down_Find;
 extern int16 Right_Up_Find;
 extern int16 Left_Up_Find;
-int16 right_down_guai=0; //Ô²»·ÓÃ
+int16 right_down_guai=0; //Ô²ï¿½ï¿½ï¿½ï¿½
 int16 left_up_guai=0;
 
 
@@ -29,7 +29,7 @@ int16 output_middle2(void)
     return centerline2[MT9V03X_H-5];
 }
 
-int16 trackline[MT9V03X_H];//¸ú×ÙÏß
+int16 trackline[MT9V03X_H];//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 enum mark
 {
     straight,
@@ -56,13 +56,13 @@ void element_check(void)
 
     if(carstatus_now==straight)
     {
-        //Ê®×ÖÂ·¿ÚÅÐ¶Ï
-        if(continuity_left(40,MT9V03X_H-5)>0&& continuity_right(40,MT9V03X_H-5)>0)//×ó²à²»Á¬Ðø£¬ÓÒ²à²»Á¬Ðø
+        //Ê®ï¿½ï¿½Â·ï¿½ï¿½ï¿½Ð¶ï¿½
+        if(continuity_left(40,MT9V03X_H-5)>0&& continuity_right(40,MT9V03X_H-5)>0)//ï¿½ï¿½à²»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò²à²»ï¿½ï¿½ï¿½ï¿½
         {
             Find_Up_Point( MT9V03X_H-5, 40 );
             if(Left_Up_Find==0&&Right_Up_Find==0)
             {
-                return;//ÕâÀïÃ»ÎÊÌâ
+                return;//ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½
                 
             }
             if(Left_Up_Find!=0&&Right_Up_Find!=0)
@@ -73,8 +73,8 @@ void element_check(void)
             }
         }
         
-        //Ô²»·ÅÐ¶Ï
-        if(continuity_left(40,MT9V03X_H-5)>0&&Find_Right_Down_Point(MT9V03X_H-5,80))//×ó²àÁ¬Ðø£¬ÓÒ²àÓÐÏÂ¹Õµã
+        //Ô²ï¿½ï¿½ï¿½Ð¶ï¿½
+        if(continuity_left(40,MT9V03X_H-5)>0&&Find_Right_Down_Point(MT9V03X_H-5,80))//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½Â¹Õµï¿½
         {
              carstatus_now=round_pre;
             return;
@@ -92,11 +92,11 @@ void element_check(void)
         Find_Down_Point(MT9V03X_H-5,start_down_point);
         if(Left_Down_Find<=Left_Up_Find)
         {
-            Left_Down_Find=0;//ÏÂµã²»¿ÉÄÜ±ÈÉÏµã »¹¿¿ÉÏ
+            Left_Down_Find=0;//ï¿½Âµã²»ï¿½ï¿½ï¿½Ü±ï¿½ï¿½Ïµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         }
         if(Right_Down_Find<=Right_Up_Find)
         {
-            Right_Down_Find=0;//ÏÂµã²»¿ÉÄÜ±ÈÉÏµã»¹¿¿ÉÏ
+            Right_Down_Find=0;//ï¿½Âµã²»ï¿½ï¿½ï¿½Ü±ï¿½ï¿½Ïµã»¹ï¿½ï¿½ï¿½ï¿½
         }
 
         if(Left_Down_Find!=0&&Right_Down_Find!=0)
@@ -146,16 +146,16 @@ void element_check(void)
     }
     if(carstatus_now==round_pre)
     {
-            //²¹ÏßË¼Â·£ºÐ±ÂÊ¶Ô³Æ·¨
+            //ï¿½ï¿½ï¿½ï¿½Ë¼Â·ï¿½ï¿½Ð±ï¿½Ê¶Ô³Æ·ï¿½
         right_down_guai=Find_Right_Down_Point(MT9V03X_H-5,80);
         int zhongduandianzuo =continuity_left(MT9V03X_H-5,80);
         int bulianxudian=montonicity_right(MT9V03X_H-5,80);
-        if(zhongduandianzuo==0&&right_down_guai&&bulianxudian)//×ó¶ËÁ¬Ðø£¬ÓÒ¶ËÍ¬Ê±³öÏÖ¹ÕµãºÍ²»Á¬Ðøµã
+        if(zhongduandianzuo==0&&right_down_guai&&bulianxudian)//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ï¿½Í¬Ê±ï¿½ï¿½ï¿½Ö¹Õµï¿½Í²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         {
 //          float dx3=(float)(rightfollowline[right_down_guai]-rightfollowline[bulianxudian])/(float)(right_down_guai-bulianxudian);
             add_Rline_k(rightfollowline[bulianxudian],bulianxudian,right_down_guai,rightfollowline[right_down_guai]);
         }
-//        else if()//×ó¶ËÁ¬Ðø£¬¹ÕµãÏûÊ§ÇÒ²»Á¬ÐøµãÈÎÈ»ÔÚ
+//        else if()//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õµï¿½ï¿½ï¿½Ê§ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È»ï¿½ï¿½
     }
 }
 
@@ -163,7 +163,7 @@ void element_check(void)
 
 
 
-//Ñ¡ÔñÈçºÎÑ­Ïß£¬´ó¼Ò¿ÉÒÔ×ÔÓÉ·¢»Ó
+//Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½Ñ­ï¿½ß£ï¿½ï¿½ï¿½Ò¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É·ï¿½ï¿½ï¿½
 void choose_tracktype(void){
     //track_type = TRACK_LEFT;
 }
