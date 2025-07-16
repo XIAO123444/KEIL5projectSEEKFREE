@@ -5,6 +5,11 @@
 void difsum_left(uint8 y,uint8 x);
 void difsum_right(uint8 y,uint8 x);
 void image_boundary_process(void);
+
+void set_b_imagine(int threshold);
+int my_adapt_threshold(uint8 *image, uint16 col, uint16 row);
+void image_boundary_process2(void);
+
 bool stop_flag(void);
 
 int16 Find_Left_Down_Point(int16 start,int16 end);

@@ -27,7 +27,17 @@ float dx1[5]={0};
 float dx2[5]={0};
 
 int16 right_down_line =0;
-//逐行寻找边界点
+
+//这里都是差比和↓↓↓↓↓↓↓
+/*
+------------------------------------------------------------------------------------------------------------------
+函数简介     差比和寻找边界点
+参数说明     无
+返回参数     无
+使用示例     直接调用
+备注信息     无
+-------------------------------------------------------------------------------------------------------------------
+*/
 void image_boundary_process(void){
     uint8 row;//行
     //uint8 col = MT9V03X_W/2;//列
@@ -54,8 +64,15 @@ void image_boundary_process(void){
         centerline[row] = 0.5 * (rightline[row] + leftline[row]);
     }
 }
-//差比和寻找左侧边界点
-void difsum_left(uint8 y,uint8 x){
+/*
+------------------------------------------------------------------------------------------------------------------
+函数简介     差比和寻找左侧边界点
+参数说明     
+返回参数     
+使用示例     
+备注信息     
+-------------------------------------------------------------------------------------------------------------------
+*/void difsum_left(uint8 y,uint8 x){
     float sum,dif,sar;//和，差，比
     uint8 col;//列
     uint8 mov = 3;//每次作差后的移动量,默认为2，可以根据画面分辨率调整
@@ -72,8 +89,15 @@ void difsum_left(uint8 y,uint8 x){
         }
     }
 }
-//差比和寻找右侧边界点
-void difsum_right(uint8 y,uint8 x){
+/*
+------------------------------------------------------------------------------------------------------------------
+函数简介     差比和寻找右侧边界点
+参数说明     
+返回参数     
+使用示例     
+备注信息     
+-------------------------------------------------------------------------------------------------------------------
+*/void difsum_right(uint8 y,uint8 x){
     float sum,dif,sar;//和，差，比
     uint8 col;//列
     uint8 mov = 3;//每次作差后的移动量,默认为2，可以根据画面分辨率调整
@@ -90,6 +114,153 @@ void difsum_right(uint8 y,uint8 x){
         }
     }
 }
+
+
+//这里都是差比和↑↑↑↑↑↑↑
+
+//大津法↓↓↓↓↓↓↓↓↓↓
+uint8 dis_image[MT9V03X_H][MT9V03X_W];
+int16 image_threshold = 46;
+/*-------------------------------------------------------------------------------------------------------------------
+  @brief     快速大津求阈值，来自山威
+  @param     image       图像数组
+             col         列 ，宽度
+             row         行，长度
+  @return    null
+  Sample     threshold=my_adapt_threshold(mt9v03x_image[0],MT9V03X_W, MT9V03X_H);//山威快速大津
+  @note      据说比传统大津法快一点，实测使用效果差不多
+-------------------------------------------------------------------------------------------------------------------*/
+int my_adapt_threshold(uint8 *image, uint16 col, uint16 row)   //注意计算阈值的一定要是原图像
+{
+    #define GrayScale 256
+    uint16 width = col;
+    uint16 height = row;
+    int pixelCount[GrayScale];
+    float pixelPro[GrayScale];
+    int i, j;
+    int pixelSum = width * height/4;
+    int threshold = 0;
+    uint8* data = image;  //指向像素数据的指针
+    for (i = 0; i < GrayScale; i++)
+    {
+        pixelCount[i] = 0;
+        pixelPro[i] = 0;
+    }
+    uint32 gray_sum=0;
+    //统计灰度级中每个像素在整幅图像中的个数
+    for (i = 0; i < height; i+=2)
+    {
+        for (j = 0; j < width; j+=2)
+        {
+            pixelCount[(int)data[i * width + j]]++;  //将当前的点的像素值作为计数数组的下标
+            gray_sum+=(int)data[i * width + j];       //灰度值总和
+        }
+    }
+    //计算每个像素值的点在整幅图像中的比例
+    for (i = 0; i < GrayScale; i++)
+    {
+        pixelPro[i] = (float)pixelCount[i] / pixelSum;
+    }
+    //遍历灰度级[0,255]
+    float w0, w1, u0tmp, u1tmp, u0, u1, u, deltaTmp, deltaMax = 0;
+    w0 = w1 = u0tmp = u1tmp = u0 = u1 = u = deltaTmp = 0;
+    for (j = 0; j < GrayScale; j++)
+    {
+        w0 += pixelPro[j];  //背景部分每个灰度值的像素点所占比例之和   即背景部分的比例
+        u0tmp += j * pixelPro[j];  //背景部分 每个灰度值的点的比例 *灰度值
+        w1=1-w0;
+        u1tmp=gray_sum/pixelSum-u0tmp;
+        u0 = u0tmp / w0;              //背景平均灰度
+        u1 = u1tmp / w1;              //前景平均灰度
+        u = u0tmp + u1tmp;            //全局平均灰度
+        deltaTmp = w0 * pow((u0 - u), 2) + w1 * pow((u1 - u), 2);
+        if (deltaTmp > deltaMax)
+        {
+            deltaMax = deltaTmp;
+            threshold = j;
+        }
+        if (deltaTmp < deltaMax)
+        {
+            break;
+        }
+    }
+    return threshold;
+}
+void set_b_imagine(int threshold)
+{
+		for(int16 i=0;i<MT9V03X_H;i++)
+	{
+		for(int16 j=0;j<MT9V03X_W;j++)
+		{
+			dis_image[i][j]=(mt9v03x_image[i][j]>threshold)?255:0;
+		}
+	}
+}
+
+void difsum_left1(uint8 y,uint8 x){
+    uint8 col;//列
+    uint8 mov = 2;//每次作差后的移动量,默认为2，可以根据画面分辨率调整
+    //计算第x行的左边界
+    leftline[y] = 0;//未找到左边界时输出为0
+    for(col = x; col >= mov + 1; col -= mov)
+	{
+		if(mt9v03x_image[y][col] - mt9v03x_image[y][col - mov]==255)
+		{
+			leftline[y] = (col - mov);
+			leftline_num ++;//左线点计数+
+			break;//找到边界后退出
+		}
+
+	}
+}
+
+void difsum_right1(uint8 y,uint8 x)
+{
+	uint8 col;//列
+    uint8 mov = 2;//每次作差后的移动量,默认为2，可以根据画面分辨率调整
+    //计算第x行的左边界
+    rightline[y] = 0;//未找到左边界时输出为0
+    for(col = x; col <= MT9V03X_W - mov - 1; col += mov)
+	{
+		if(mt9v03x_image[y][col] - mt9v03x_image[y][col + mov]==255)
+		{
+			rightline[y] = (col - mov);
+			rightline_num ++;//右边线点计数+
+			break;//找到边界后退出
+		}
+
+	}
+}
+void image_boundary_process2(void){
+    uint8 row;//行
+    //uint8 col = MT9V03X_W/2;//列
+    uint8 start_col = MT9V03X_W / 2;//各行起点的列坐标,默认为MT9V03X_W / 2
+    //清零之前的计数
+    leftline_num = 0;
+    rightline_num = 0;
+
+    for(row = MT9V03X_H - 1; row >= 1; row--){
+        //选用上一行的中点作为下一行计算起始点，节省速度，同时防止弯道的左右两边均出现与画面一侧
+        if(row != MT9V03X_H - 1){
+            start_col = (uint8)(0.4 * centerline[row] + 0.3 * start_col + 0.1 * MT9V03X_W);//一阶低通滤波，防止出现噪点影响下一行的起始点
+
+
+        }
+        else if(row == MT9V03X_H - 1){
+            start_col = MT9V03X_W / 2;
+        }
+        if(start_col<MT9V03X_W/2-30){start_col=MT9V03X_W/2-30;}
+        if(start_col>MT9V03X_W/2+30){start_col=MT9V03X_W/2+30;}
+        //逐行作差比和 
+        difsum_left1(row,start_col);
+        difsum_right1(row,start_col); 
+        centerline[row] = 0.5 * (rightline[row] + leftline[row]);
+    }
+}
+
+
+//大津法↑↑↑↑↑↑↑↑↑↑
+
 void banmaxian_check(void)
 {
     int16 sum =0;
