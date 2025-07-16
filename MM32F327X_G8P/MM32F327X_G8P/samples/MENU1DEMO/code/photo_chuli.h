@@ -7,15 +7,15 @@ void difsum_right(uint8 y,uint8 x);
 void image_boundary_process(void);
 bool stop_flag(void);
 
-int Find_Left_Down_Point(int start,int end);
-int Find_Right_Down_Point(uint8 start,uint8 end);
-int continuity_left(uint8 start,uint8 end);
-int montonicity_right(uint8 start,uint8 end);
-int continuity_right(uint8 start,uint8 end);
+int16 Find_Left_Down_Point(int16 start,int16 end);
+int16 Find_Right_Down_Point(uint8 start,uint8 end);
+int16 continuity_left(uint8 start,uint8 end);
+int16 montonicity_right(uint8 start,uint8 end);
+int16 continuity_right(uint8 start,uint8 end);
 
 //Ê®×Ö
-void Find_Down_Point(int start,int end);
-void Find_Up_Point(int start,int end);
+void Find_Down_Point(int16 start,int16 end);
+void Find_Up_Point(int16 start,int16 end);
 
 void draw_Lline_k(int16 startx, int16 starty, int16 endy, float dx);
 void draw_Rline_k(int16 startx, int16 starty, int16 endy, float dx);

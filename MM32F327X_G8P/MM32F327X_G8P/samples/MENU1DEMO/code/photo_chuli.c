@@ -26,7 +26,7 @@ extern bool stop_flag1;
 float dx1[5]={0};
 float dx2[5]={0};
 
-int right_down_line =0;
+int16 right_down_line =0;
 //逐行寻找边界点
 void image_boundary_process(void){
     uint8 row;//行
@@ -92,8 +92,8 @@ void difsum_right(uint8 y,uint8 x){
 }
 void banmaxian_check(void)
 {
-    int sum =0;
-    for(int i=94;i>40;i--)
+    int16 sum =0;
+    for(int16 i=94;i>40;i--)
     {
         if(mt9v03x_image[ MT9V03X_H - 5][i]<120)
         {
@@ -101,7 +101,7 @@ void banmaxian_check(void)
         }
 
     }
-        for(int i=94;i<148;i++)
+        for(int16 i=94;i<148;i++)
     {
         if(mt9v03x_image[ MT9V03X_H - 5][i]<120)
         {
@@ -151,12 +151,12 @@ bool stop_flag(void)
   @return    修改两个全局变量
              Right_Down_Find=0;
              Left_Down_Find=0;
-  Sample     Find_Down_Point(int start,int end)
+  Sample     Find_Down_Point(int16 start,int16 end)
   @note      运行完之后查看对应的变量，注意，没找到时对应变量将是0
 -------------------------------------------------------------------------------------------------------------------*/
-void Find_Down_Point(int start,int end)
+void Find_Down_Point(int16 start,int16 end)
 {
-    int i,t;
+    int16 i,t;
     Right_Down_Find=0;
     Left_Down_Find=0;
     if(start<end)
@@ -206,12 +206,12 @@ void Find_Down_Point(int start,int end)
   @return    修改两个全局变量
              Left_Up_Find=0;
              Right_Up_Find=0;
-  Sample     Find_Up_Point(int start,int end)
+  Sample     Find_Up_Point(int16 start,int16 end)
   @note      运行完之后查看对应的变量，注意，没找到时对应变量将是0
 -------------------------------------------------------------------------------------------------------------------*/
-void Find_Up_Point(int start,int end)
+void Find_Up_Point(int16 start,int16 end)
 {
-    int i,t;
+    int16 i,t;
     Left_Up_Find=0;
     Right_Up_Find=0;
     if(start>end)
@@ -238,8 +238,6 @@ void Find_Up_Point(int start,int end)
               (leftline[i]-leftline[i+4])>=7)
         {
             Left_Up_Find=i;//获取行数即可
-            ips200_show_int(0,280,Left_Up_Find,8);
-
 
         }
         if(Right_Up_Find==0&&//只找第一个符合条件的点
@@ -268,7 +266,7 @@ void Find_Up_Point(int start,int end)
 
 /*
 ------------------------------------------------------------------------------------------------------------------
-函数简介     滑动平均滤波
+函数简介     滑动平均滤波左
 参数说明     无
 返回参数     无
 使用示例     
@@ -283,7 +281,15 @@ void dx1_left_average(float dx)
     }
     dx1[4]=dx;
 }
-
+/*
+------------------------------------------------------------------------------------------------------------------
+函数简介     滑动平均滤波右
+参数说明     无
+返回参数     无
+使用示例     
+备注信息     
+-------------------------------------------------------------------------------------------------------------------
+*/
 void dx2_right_average(float dx)
 {
     for(uint8 i=1;i<5;i++)
@@ -303,10 +309,10 @@ void dx2_right_average(float dx)
   Sample     left_down_guai[0]=Find_Left_Down_Point(MT9V03X_H-1,20);
   @note      角点检测阈值可根据实际值更改
 -------------------------------------------------------------------------------------------------------------------*/
-int Find_Left_Down_Point(int start,int end)//找左下角点，返回值是角点所在的行数
+int16 Find_Left_Down_Point(int16 start,int16 end)//找左下角点，返回值是角点所在的行数
  {
-    int i,t;
-    int left_down_line=0;
+    int16 i,t;
+    int16 left_down_line=0;
     if(leftline_num<=0.1*MT9V03X_H)//大部分都丢线，没有拐点判断的意义
        return left_down_line;
     if(start<end)//--访问，要保证start>end
@@ -344,7 +350,7 @@ int Find_Left_Down_Point(int start,int end)//找左下角点，返回值是角点所在的行数
   Sample     right_down_guai[0]=Find_Left_Down_Point(MT9V03X_H-1,20);
   @note      角点检测阈值可根据实际值更改
 -------------------------------------------------------------------------------------------------------------------*/
-int Find_Right_Down_Point(uint8 start,uint8 end)
+int16 Find_Right_Down_Point(uint8 start,uint8 end)
 {
     right_down_line=0;
     if(start>MT9V03X_H-6)
@@ -358,7 +364,7 @@ int Find_Right_Down_Point(uint8 start,uint8 end)
         start=end;
         end=t;
     }
-    for(int i=start;i>=end;i--)
+    for(int16 i=start;i>=end;i--)
     {
         if(right_down_line==0&&//只找第一个符合条件的点
            abs(rightline[i]-rightline[i+1])<=5&&//角点的阈值可以更改
@@ -385,10 +391,10 @@ int Find_Right_Down_Point(uint8 start,uint8 end)
 -------------------------------------------------------------------------------------------------------------------
 */
 //确定连续性函数（右侧）
-int continuity_right(uint8 start,uint8 end)
+int16 continuity_right(uint8 start,uint8 end)
 {
-    int i;
-    int continuity_change_flag=0;
+    int16 i;
+    int16 continuity_change_flag=0;
     if(start>=MT9V03X_H-5)//数组越界保护
         start=MT9V03X_H-5;
     if(end<=5)
@@ -426,10 +432,10 @@ int continuity_right(uint8 start,uint8 end)
 */
 //确定连续性函数（左侧）
 
-int continuity_left(uint8 start,uint8 end)
+int16 continuity_left(uint8 start,uint8 end)
 {
-    int i;
-    int continuity_change_flag=0;
+    int16 i;
+    int16 continuity_change_flag=0;
     if(start>=MT9V03X_H-5)//数组越界保护
         start=MT9V03X_H-5;
     if(end<=5)
@@ -457,12 +463,12 @@ int continuity_left(uint8 start,uint8 end)
     return continuity_change_flag-end-10;
 }
 //单调性变化s
-int montonicity_right(uint8 start,uint8 end)
+int16 montonicity_right(uint8 start,uint8 end)
 {
-    int i;
-    int result=0;
-    int montonicity_add=0;//单调增
-    int montonicity_sub=0;//单调减
+    int16 i;
+    int16 result=0;
+    int16 montonicity_add=0;//单调增
+    int16 montonicity_sub=0;//单调减
     if(start>=MT9V03X_H-5)//数组越界保护
         start=MT9V03X_H-5;
     if(end<=5)
@@ -512,13 +518,13 @@ int montonicity_right(uint8 start,uint8 end)
 */
 void draw_Lline_k(int16 startx, int16 starty, int16 endy, float dx) {
     if (dx == 0) {
-        for (int i = (starty< endy)?starty:endy; i <=(starty>endy)?starty:endy; i++) {
+        for (int16 i = (starty< endy)?starty:endy; i <=(starty>endy)?starty:endy; i++) {
             leftfollowline[i] = startx;
         }
         return;
     }
-    int step = (starty < endy) ? 1 : -1;
-    for (int i = starty; i != endy; i += step) {
+    int16 step = (starty < endy) ? 1 : -1;
+    for (int16 i = starty; i != endy; i += step) {
         leftfollowline[i] = startx + (int16)((i - starty) * dx + 0.5f);
     }
 }
@@ -536,14 +542,14 @@ void draw_Rline_k(int16 startx, int16 starty, int16 endy, float dx) {
 
     if (dx == 0) 
     {
-        for (int i = (starty< endy)?starty:endy; i <=(starty>endy)?starty:endy; i++) 
+        for (int16 i = (starty< endy)?starty:endy; i <=(starty>endy)?starty:endy; i++) 
         {
             rightfollowline[i] = startx;
         }
         return;
     }
-    int step = (starty < endy) ? 1 : -1;
-    for (int i = starty; i != endy; i += step) {
+    int16 step = (starty < endy) ? 1 : -1;
+    for (int16 i = starty; i != endy; i += step) {
         rightfollowline[i] = startx + (int16)((i - starty) * dx + 0.5f); 
     }
 }
@@ -591,7 +597,7 @@ void lenthen_Left_bondarise(int16 start)
     float dx=(float)(leftline[start]-leftline[start-7])/7;
     dx1_left_average(dx);
     float dx_average=(dx1[0]+dx1[1]+dx1[2]+dx1[3]+dx1[4])/5;
-    for(int i=start;i<MT9V03X_H-1;i++)
+    for(int16 i=start;i<MT9V03X_H-1;i++)
     {
         if((float)leftline[start]+(float)(dx_average*(i-start))<0||(float)leftline[start]+dx_average*(float)(i-start)>(float)MT9V03X_W)
         {
@@ -599,7 +605,7 @@ void lenthen_Left_bondarise(int16 start)
         }
         else
         {
-            leftfollowline[i]=(int)((float)leftline[start]+dx_average*(float)(i-start));
+            leftfollowline[i]=(int16)((float)leftline[start]+dx_average*(float)(i-start));
         }
     }
 }
@@ -612,14 +618,14 @@ void lenthen_Left_bondarise(int16 start)
 备注信息     
 -------------------------------------------------------------------------------------------------------------------
 */  
-void lenthen_Right_bondarise(int16 start)
+void lenthen_Right_bondarise(int16 start) 
 {
     if(start<7){start=7;}
     if(start>MT9V03X_H-7){start=MT9V03X_H-7;}
     float dx=(float)(rightline[start]-rightline[start-7])/7;
     dx2_right_average(dx);
     float dx_average=(dx2[0]+dx2[1]+dx2[2]+dx2[3]+dx2[4])/5;
-    for(int i=start;i<MT9V03X_H-1;i++)
+    for(int16 i=start;i<MT9V03X_H-1;i++)
     {
         if((float)rightline[start]+dx_average*(i-start)>MT9V03X_W-5||(float)rightline[start]+dx_average*(float)(i-start)<0)
         {
@@ -627,7 +633,7 @@ void lenthen_Right_bondarise(int16 start)
         }
         else 
         {
-            rightfollowline[i]=(int)((float)rightline[start]+dx_average*(float)(i-start));
+            rightfollowline[i]=(int16)((float)rightline[start]+dx_average*(float)(i-start));
         }
     }
 }

@@ -3,7 +3,7 @@
 
 #include "zf_common_headfile.h"
 
-void BUZZ_start(void);
+void BUZZ_init(void);
 void BUZZ_cycle(void);
 
 

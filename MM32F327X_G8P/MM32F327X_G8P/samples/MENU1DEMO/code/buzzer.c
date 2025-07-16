@@ -12,9 +12,9 @@ uint16 count_beep = 0;                  // 蜂鸣器计数器
 备注信息     无
 -------------------------------------------------------------------------------------------------------------------
 */
-void BUZZ_start(void)
+void BUZZ_init(void)
 {
-    count_beep=3;
+		gpio_init(BUZZ,GPO,GPIO_LOW,GPO_PUSH_PULL);
 }
 
 /*
@@ -28,14 +28,12 @@ void BUZZ_start(void)
 */
 void BUZZ_cycle(void)
 {
-    if(count_beep)
+	count_beep=3;
+    while(count_beep)
     {
         gpio_set_level(BUZZ,GPIO_HIGH);
         count_beep--;
     }
-    else
-    {
-        count_beep=0;
-        gpio_set_level(BUZZ, GPIO_LOW);
-    }
+	gpio_set_level(BUZZ,GPIO_LOW);
+
 }

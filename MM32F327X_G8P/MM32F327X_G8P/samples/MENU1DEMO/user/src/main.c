@@ -72,6 +72,7 @@
 #include "screen.h"
 #include "track.h"
 #include "steer_pid.h"
+#include "buzzer.h"
 bool save_flag=false;
 bool stop_flag1;
 extern uint8 leftline_num;//左线点数量
@@ -89,6 +90,7 @@ void all_init(void)
 	system_delay_ms(300);
     flash_init();    
     Key_init();                     //按键初始化
+    BUZZ_init();
 //    Encoder_Init();                 //编码器初始化
     motor_init();
     S_PID_CAL_init();
@@ -105,11 +107,6 @@ void all_init(void)
         system_delay_ms(50);
         
     }
-
-
-
-    
-
 
 }
 void flash_save(void)
@@ -155,7 +152,6 @@ int main (void)
     stop_flag1=false;
     while(1)
     { 
-
         Key_Scan();
         Menu_control();
         flash_save();
@@ -164,7 +160,7 @@ int main (void)
             image_boundary_process();
             if(current_state==1)
             {
-//                ips200_show_gray_image(0,120,(const uint8 *)mt9v03x_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);       //图像处理可注释掉
+                ips200_show_gray_image(0,120,(const uint8 *)mt9v03x_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);       //图像处理可注释掉
                 element_check();
                 show_line();
 //                ips200_show_int()//显示中间数组
