@@ -31,7 +31,7 @@ void S_PID_CAL_init(void)
 }
 int S_PID_CAL()
 {
-    int16 measure=output_middle()*1; 
+    int16 measure=output_middle(); 
     //int16 measure =output_middle2();//补线成功就用这个代码
     error = 94-(float)measure;//大于0的时候是左偏移<0右偏
     intgral+=error;

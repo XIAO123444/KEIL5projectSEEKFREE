@@ -160,16 +160,15 @@ int main (void)
         if(mt9v03x_finish_flag)
         { 
             image_threshold=my_adapt_threshold(mt9v03x_image[0], MT9V03X_W, MT9V03X_H);//图像获取阈值
-            printf("%d",image_threshold);
-            set_b_imagine(image_threshold);
+             set_b_imagine(image_threshold);
             image_boundary_process2();
             if(current_state==1)
             {
                 
                 ips200_show_gray_image(0,120,(const uint8 *)dis_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);       //图像处理可注释掉
-//                element_check();
+                element_check();
                 show_line(); 
-//                ips200_show_int()//显示中间数组
+                ips200_show_int(20,300,output_middle(),3);
             }
             banmaxian_check();//斑马线和出界保护
             if(stop_flag1)
