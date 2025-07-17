@@ -299,7 +299,7 @@ void banmaxian_check(void)
         }
 
     }
-            if (sum>108*0.4)
+            if (sum>108*0.35)
         {
             stop_flag1=true;
         }
@@ -357,29 +357,29 @@ void Find_Down_Point(int16 start,int16 end)
     }
     if(start>=MT9V03X_H-1-5)//下面5行数据不稳定，不能作为边界点来判断，舍弃
         start=MT9V03X_H-1-5;
-    if(end<=MT9V03X_H-10)
+    if(end>=MT9V03X_H-10)
         end=MT9V03X_H-10;
     if(end<=5)
        end=5;
     for(i=start;i>=end;i--)
     {
         if(Left_Down_Find==0&&//只找第一个符合条件的点
-           abs(leftline[i]-leftline[i+1])<=3&&//角点的阈值可以更改
-           abs(leftline[i+1]-leftline[i+2])<=3&&
-           abs(leftline[i+2]-leftline[i+3])<=3&&
-            ((leftline[i]-leftline[i-2])>=5||leftline[i-2]==0)&&
-            ((leftline[i]-leftline[i-3])>=7||leftline[i-3]==0)&&
-            ((leftline[i]-leftline[i-4])>=7||leftline[i-4]==0))
+           abs(leftline[i]-leftline[i+1])<=5&&//角点的阈值可以更改
+           abs(leftline[i+1]-leftline[i+2])<=5&&
+           abs(leftline[i+2]-leftline[i+3])<=5&&
+            ((leftline[i]-leftline[i-2])>=5||leftline[i-2]<=4)&&
+            ((leftline[i]-leftline[i-3])>=7||leftline[i-3]<=4)&&
+            ((leftline[i]-leftline[i-4])>=7||leftline[i-4]<=4))
         {
             Left_Down_Find=i;//获取行数即可
         }
         if(Right_Down_Find==0&&//只找第一个符合条件的点
-           abs(rightline[i]-rightline[i+1])<=3&&//角点的阈值可以更改
-           abs(rightline[i+1]-rightline[i+2])<=3&&
-           abs(rightline[i+2]-rightline[i+3])<=3&&
-              ((rightline[i]-rightline[i-2])<=-5||leftline[i-2]==MT9V03X_H-1)&&
-              ((rightline[i]-rightline[i-3])<=-7||leftline[i-2]==MT9V03X_H-1)&&
-              ((rightline[i]-rightline[i-4])<=-7||leftline[i-2]==MT9V03X_H-1  ))
+           abs(rightline[i]-rightline[i+1])<=5&&//角点的阈值可以更改
+           abs(rightline[i+1]-rightline[i+2])<=5&&
+           abs(rightline[i+2]-rightline[i+3])<=5&&
+              ((rightline[i]-rightline[i-2])<=-5||rightline[i-2]>=MT9V03X_W-4)&&
+              ((rightline[i]-rightline[i-3])<=-7||rightline[i-3]>=MT9V03X_W-4)&&
+              ((rightline[i]-rightline[i-4])<=-7||rightline[i-4]>=MT9V03X_W-4))
         {
             Right_Down_Find=i;
         }
@@ -388,6 +388,24 @@ void Find_Down_Point(int16 start,int16 end)
             break;
         }
     }
+        if(abs(Right_Down_Find-Left_Down_Find)>=50)//纵向撕裂过大，视为误判
+    {
+        Right_Down_Find=0;
+        Left_Down_Find=0;
+    }
+    if(Right_Down_Find==74)
+    {
+            Right_Down_Find=0;
+
+    }
+        if(Left_Down_Find==74)
+    {
+            Left_Down_Find=0;
+
+    }
+    printf("leftdownfind%d",Left_Down_Find);
+//    
+    printf("rightdownfind%d\n",Right_Down_Find);//
 }
  
 /*-------------------------------------------------------------------------------------------------------------------
@@ -420,23 +438,23 @@ void Find_Up_Point(int16 start,int16 end)
     for(i=start;i<=end;i++)
     {
         if(Left_Up_Find==0&&//只找第一个符合条件的点
-           abs(leftline[i]-leftline[i-1])<=3&&
-           abs(leftline[i-1]-leftline[i-2])<=3&&
-           abs(leftline[i-2]-leftline[i-3])<=3&&
-              (leftline[i]-leftline[i+2])>=5&&
-              (leftline[i]-leftline[i+3])>=7&&
-              (leftline[i]-leftline[i+4])>=7)
+           abs(leftline[i]-leftline[i-1])<=5&&
+           abs(leftline[i-1]-leftline[i-2])<=5&&
+           abs(leftline[i-2]-leftline[i-3])<=5&&
+              ((leftline[i]-leftline[i+2])>=7||leftline[i+2]<4)&&
+              ((leftline[i]-leftline[i+3])>=7||leftline[i+3]<4)&&
+              ((leftline[i]-leftline[i+4])>=7||leftline[i+4]<4))
         {
             Left_Up_Find=i;//获取行数即可
 
         }
         if(Right_Up_Find==0&&//只找第一个符合条件的点
-           abs(rightline[i]-rightline[i-1])<=3&&//下面两行位置差不多
-           abs(rightline[i-1]-rightline[i-2])<=3&&
-           abs(rightline[i-2]-rightline[i-3])<=3&&
-              (rightline[i]-rightline[i+2])<=-5&&
-              (rightline[i]-rightline[i+3])<=-7&&
-              (rightline[i]-rightline[i+4])<=-7)
+           abs(rightline[i]-rightline[i-1])<=5&&//下面两行位置差不多
+           abs(rightline[i-1]-rightline[i-2])<=5&&
+           abs(rightline[i-2]-rightline[i-3])<=5&&
+              ((rightline[i]-rightline[i+2]<=-7)||rightline[i+2]>MT9V03X_W-4)&&
+              ((rightline[i]-rightline[i+3])<=-7||rightline[i+3]>MT9V03X_W-4)&&
+              ((rightline[i]-rightline[i+4])<=-7||rightline[i+4]>MT9V03X_W-4))
         {
             Right_Up_Find=i;//获取行数即可
 
@@ -451,6 +469,9 @@ void Find_Up_Point(int16 start,int16 end)
         Right_Up_Find=0;
         Left_Up_Find=0;
     }
+    printf("leftupfind%d",Left_Up_Find);
+    
+    printf("rightupfind%d\n",Right_Up_Find);//没问题
 }
 
 
@@ -585,11 +606,11 @@ int16 continuity_right(uint8 start,uint8 end)
 {
     int16 i;
     int16 continuity_change_flag=0;
-    if(start>=MT9V03X_H-5)//数组越界保护
-        start=MT9V03X_H-5;
-    if(end<=5)
+    if(start>=MT9V03X_H-2)//数组越界保护
+        start=MT9V03X_H-2;
+    if(end<=1)
     {
-        end=5;
+        end=1;
     }
         if(start<end)
     {
@@ -607,7 +628,7 @@ int16 continuity_right(uint8 start,uint8 end)
        }
 
     }
-    //    printf("continuity_right%d,\n",continuity_change_flag);
+//      printf("continuity_right%d,\n",continuity_change_flag);没问题
 
     return continuity_change_flag-end-10;
 }
@@ -626,11 +647,11 @@ int16 continuity_left(uint8 start,uint8 end)
 {
     int16 i;
     int16 continuity_change_flag=0;
-    if(start>=MT9V03X_H-5)//数组越界保护
-        start=MT9V03X_H-5;
-    if(end<=5)
+    if(start>=MT9V03X_H-2)//数组越界保护
+        start=MT9V03X_H-2;
+    if(end<=1)
     {
-        end=5;
+        end=1;
     }
         if(start<end)
     {
@@ -649,7 +670,7 @@ int16 continuity_left(uint8 start,uint8 end)
        }
 
     }
-    //    printf("continuity_left%d,\n",continuity_change_flag);
+//        printf("continuity_left%d,\n",continuity_change_flag);没问题
     return continuity_change_flag-end-10;
 }
 //单调性变化s

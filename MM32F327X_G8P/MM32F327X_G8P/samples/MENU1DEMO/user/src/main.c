@@ -168,7 +168,6 @@ int main (void)
                 ips200_show_gray_image(0,120,(const uint8 *)dis_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);       //图像处理可注释掉
                 element_check();
                 show_line(); 
-                ips200_show_int(20,300,output_middle(),3);
             }
             banmaxian_check();//斑马线和出界保护
             if(stop_flag1)
