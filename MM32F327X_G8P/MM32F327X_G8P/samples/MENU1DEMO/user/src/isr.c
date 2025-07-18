@@ -187,7 +187,7 @@ void TIM5_IRQHandler (void)
 
     // 此处编写用户代码
     TIM5->SR &= ~TIM5->SR;                                                      // 清空中断状态
-}
+} 
 
 //-------------------------------------------------------------------------------------------------------------------
 // 函数简介     TIM6 的定时器中断服务函数 启动 .s 文件定义 不允许修改函数名称
@@ -201,7 +201,8 @@ void TIM6_IRQHandler (void)
 	encoder2=encoder_get_count(TIM4_ENCODER);
 	encoder_clear_count(TIM4_ENCODER);
     turn1=40 *S_PID_CAL();
-    int outpute =pid_V_comon(100 );
+//    turn1=0;
+    int outpute =pid_V_comon( 100 );
     int dutyr =outpute+turn1;
     int dutyl = outpute-turn1;
     

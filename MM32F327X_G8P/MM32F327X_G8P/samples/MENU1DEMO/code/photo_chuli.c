@@ -12,10 +12,10 @@ int16 rightline[MT9V03X_H];
 int16 rightfollowline[MT9V03X_H];
 int16 leftfollowline[MT9V03X_H];
 //十字↓↓↓↓
-int16 Right_Down_Find=0;
-int16 Left_Down_Find=0;
-int16 Right_Up_Find=0;
-int16 Left_Up_Find=0;
+int16 Right_Down_Find=0;    //右下点
+int16 Left_Down_Find=0;     //左下点
+int16 Right_Up_Find=0;      //右上点
+int16 Left_Up_Find=0;       //左上点
 //十字↑↑↑↑
 uint8 leftline_num;//左线点数量
 uint8 rightline_num;//右线点数量
@@ -283,7 +283,7 @@ void image_boundary_process2(void)
 void banmaxian_check(void)
 {
     int16 sum =0;
-    for(int16 i=94;i>40;i--)
+    for(int16 i=70;i>30;i--)
     {
         if(mt9v03x_image[ MT9V03X_H - 5][i]<120)
         {
@@ -291,15 +291,15 @@ void banmaxian_check(void)
         }
 
     }
-        for(int16 i=94;i<148;i++)
+        for(int16 i=70;i<110;i++)
     {
-        if(mt9v03x_image[ MT9V03X_H - 5][i]<120)
+        if(mt9v03x_image[ MT9V03X_H - 10][i]<120)
         {
             sum++;
         }
 
     }
-            if (sum>108*0.35)
+            if (sum>80*0.35)
         {
             stop_flag1=true;
         }
@@ -315,7 +315,7 @@ void banmaxian_check(void)
 */
 int16 output_middle(void)
 {
-    return centerline[MT9V03X_H-4];
+    return centerline[MT9V03X_H-15];
 }
 
 
@@ -371,7 +371,7 @@ void Find_Down_Point(int16 start,int16 end)
             ((leftline[i]-leftline[i-3])>=7||leftline[i-3]<=4)&&
             ((leftline[i]-leftline[i-4])>=7||leftline[i-4]<=4))
         {
-            Left_Down_Find=i;//获取行数即可
+            Left_Down_Find=i+2;//获取行数即可
         }
         if(Right_Down_Find==0&&//只找第一个符合条件的点
            abs(rightline[i]-rightline[i+1])<=5&&//角点的阈值可以更改
@@ -381,7 +381,7 @@ void Find_Down_Point(int16 start,int16 end)
               ((rightline[i]-rightline[i-3])<=-7||rightline[i-3]>=MT9V03X_W-4)&&
               ((rightline[i]-rightline[i-4])<=-7||rightline[i-4]>=MT9V03X_W-4))
         {
-            Right_Down_Find=i;
+            Right_Down_Find=i+2;
         }
         if(Left_Down_Find!=0&&Right_Down_Find!=0)//两个找到就退出
         {
@@ -445,7 +445,7 @@ void Find_Up_Point(int16 start,int16 end)
               ((leftline[i]-leftline[i+3])>=7||leftline[i+3]<4)&&
               ((leftline[i]-leftline[i+4])>=7||leftline[i+4]<4))
         {
-            Left_Up_Find=i;//获取行数即可
+            Left_Up_Find=i-2;//获取行数即可
 
         }
         if(Right_Up_Find==0&&//只找第一个符合条件的点
@@ -456,7 +456,7 @@ void Find_Up_Point(int16 start,int16 end)
               ((rightline[i]-rightline[i+3])<=-7||rightline[i+3]>MT9V03X_W-4)&&
               ((rightline[i]-rightline[i+4])<=-7||rightline[i+4]>MT9V03X_W-4))
         {
-            Right_Up_Find=i;//获取行数即可
+            Right_Up_Find=i-2;//获取行数即可
 
         }
         if(Left_Up_Find!=0&&Right_Up_Find!=0)//下面两个找到就出去
@@ -670,7 +670,7 @@ int16 continuity_left(uint8 start,uint8 end)
        }
 
     }
-//        printf("continuity_left%d,\n",continuity_change_flag);没问题
+        printf("continuity_left%d,\n",continuity_change_flag);
     return continuity_change_flag-end-10;
 }
 //单调性变化s
@@ -728,15 +728,17 @@ int16 montonicity_right(uint8 start,uint8 end)
 -------------------------------------------------------------------------------------------------------------------
 */
 void draw_Lline_k(int16 startx, int16 starty, int16 endy, float dx) {
+    int16 step = (starty < endy) ? 1 : -1;
     if (dx == 0) {
-        for (int16 i = (starty< endy)?starty:endy; i <=(starty>endy)?starty:endy; i++) {
+
+        for (int16 i =starty; i != endy; i += step) {
             leftfollowline[i] = startx;
         }
         return;
     }
-    int16 step = (starty < endy) ? 1 : -1;
     for (int16 i = starty; i != endy; i += step) {
-        leftfollowline[i] = startx + (int16)((i - starty) * dx + 0.5f);
+
+        leftfollowline[i] = startx + (int16)((float)(i - starty) * dx );
     }
 }
 /*
@@ -751,17 +753,19 @@ void draw_Lline_k(int16 startx, int16 starty, int16 endy, float dx) {
 void draw_Rline_k(int16 startx, int16 starty, int16 endy, float dx) {
 
 
+    int16 step = (starty < endy) ? 1 : -1;
+
     if (dx == 0) 
-    {
-        for (int16 i = (starty< endy)?starty:endy; i <=(starty>endy)?starty:endy; i++) 
+    {                
+        for (int16 i = starty; i != endy; i += step) 
         {
             rightfollowline[i] = startx;
         }
         return;
     }
-    int16 step = (starty < endy) ? 1 : -1;
     for (int16 i = starty; i != endy; i += step) {
-        rightfollowline[i] = startx + (int16)((i - starty) * dx + 0.5f); 
+
+        rightfollowline[i] = startx + (int16)((float)(i - starty) * dx ); 
     }
 }
 /*
@@ -775,8 +779,15 @@ void draw_Rline_k(int16 startx, int16 starty, int16 endy, float dx) {
 */
 void add_Rline_k(int16 startx, int16 starty, int16 endy,int16 endx)
 {
-    float dx=(float)(endx-startx)/(float)(endy-starty);
-    draw_Rline_k(startx,starty,endy,dx);
+    if(endy!=starty)
+    {
+        float dx=(float)(endx-startx)/(float)(endy-starty);
+        draw_Rline_k(startx,starty,endy,dx);
+    }
+    else
+    {
+        return;
+    }
 }
 /*
 ------------------------------------------------------------------------------------------------------------------
@@ -784,13 +795,19 @@ void add_Rline_k(int16 startx, int16 starty, int16 endy,int16 endx)
 参数说明     起点xy，终点xy
 返回参数     无
 使用示例     
-备注信息     
+备注信息     能除以0那你真牛逼
 -------------------------------------------------------------------------------------------------------------------
 */
 void add_Lline_k(int16 startx, int16 starty, int16 endy,int16 endx)
 {
-    float dx=(float)(endx-startx)/(float)(endy-starty);
-    draw_Lline_k(startx,starty,endy,dx);
+    if(endy!=starty)
+    {
+        float dx=(float)(endx-startx)/(float)(endy-starty);
+        draw_Lline_k(startx,starty,endy,dx);
+    }
+    else{
+         return;
+    }
 }
 /*
 ------------------------------------------------------------------------------------------------------------------
