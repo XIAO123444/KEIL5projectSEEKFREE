@@ -179,7 +179,7 @@ int main (void)
                 element_check();
                 show_line(); 
             }
-//            banmaxian_check();//斑马线和出界保护
+            banmaxian_check();//斑马线和出界保护
             black_protect_check();
             if(stop_flag1)
             {

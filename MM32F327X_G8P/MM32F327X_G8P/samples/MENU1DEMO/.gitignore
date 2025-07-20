@@ -21,3 +21,11 @@ MM32F327X_G8P/MM32F327X_G8P/samples/MENU1DEMO/mdk/Objects/MM32F327X_G8P.build_lo
 MM32F327X_G8P/MM32F327X_G8P/samples/MENU1DEMO/mdk/Objects/MM32F327X_G8P.axf
 MM32F327X_G8P/MM32F327X_G8P/samples/MENU1DEMO/mdk/mm32f327x_g8p.uvguix.76343
 MM32F327X_G8P/MM32F327X_G8P_Library
+mdk\Objects
+mdk\mm32f327x_g8p.uvprojx
+mdk\mm32f327x_g8p.uvoptx
+mdk\mm32f327x_g8p.uvprojx
+*.ini
+*.bat
+mdk\.vscode
+.vscode

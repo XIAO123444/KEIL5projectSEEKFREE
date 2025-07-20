@@ -210,15 +210,16 @@ void element_check(void) {
 		centerline2_change();
 
 		
-	}
+	} 
 	if(carstatus_now==round_4)
 	{
 		Find_Up_Point(MT9V03X_H-5, 5);
         printf("LEFT_up_find%d",Left_Up_Find);
         printf("RIghT_up_find%d\n",Right_Up_Find);
+            		centerline2_change();
+
 
 	}
-    		centerline2_change();
 
 
     
