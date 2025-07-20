@@ -32,6 +32,7 @@ void lenthen_Left_bondarise(int16 start);
 void lenthen_Right_bondarise(int16 start);
 
 void banmaxian_check(void);
+void black_protect_check(void);
 
 int16 output_middle(void);
 

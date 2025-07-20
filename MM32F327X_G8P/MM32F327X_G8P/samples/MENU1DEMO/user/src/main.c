@@ -82,6 +82,7 @@ extern struct steer_pid S_PID;
 extern bool start_flag;
 extern int current_state;
 extern int speed; 
+extern int forwardsight;
 extern uint8 dis_image[MT9V03X_H][MT9V03X_W];
 void all_init(void)
 {
@@ -124,6 +125,7 @@ void flash_save(void)
         flash_union_buffer[3].float_type=PID_V.i_max;
         flash_union_buffer[4].float_type=PID_V.d_max;    
         flash_union_buffer[5].float_type=PID_V.output_max;
+        
         flash_erase_page(100,0);
         flash_write_page_from_buffer(100,0);        // 向指定 Flash 扇区的页码写入缓冲区数据
 
@@ -142,7 +144,15 @@ void flash_save(void)
         flash_erase_page(100,1);
         flash_write_page_from_buffer(100,1);        // 向指定 Flash 扇区的页码写入缓冲区数据
 
+        if(flash_check(100, 2)){flash_erase_page(100, 2);}
+        flash_buffer_clear();
+
+        flash_union_buffer[0].int32_type=speed;
+        flash_union_buffer[1].int32_type=forwardsight;
         
+        flash_erase_page(100,2);
+        flash_write_page_from_buffer(100,2);        // 向指定 Flash 扇区的页码写入缓冲区数据
+
         save_flag=false;
     }
 }
@@ -165,11 +175,12 @@ int main (void)
             if(current_state==1)
             {
                 
-                ips200_show_gray_image(0,120,(const uint8 *)dis_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);       //图像处理可注释掉
+                 ips200_show_gray_image(0,120,(const uint8 *)dis_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);       //图像处理可注释掉
                 element_check();
                 show_line(); 
             }
-            banmaxian_check();//斑马线和出界保护
+//            banmaxian_check();//斑马线和出界保护
+            black_protect_check();
             if(stop_flag1)
             {
             pit_disable(TIM6_PIT);

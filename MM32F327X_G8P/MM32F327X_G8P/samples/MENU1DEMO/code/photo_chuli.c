@@ -6,6 +6,7 @@
  */
 #include "photo_chuli.h"
 #include "math.h"
+#include "track.h"
 int16 centerline[MT9V03X_H];
 int16 leftline[MT9V03X_H];
 int16 rightline[MT9V03X_H];
@@ -17,8 +18,41 @@ int16 Left_Down_Find=0;     //×óÏÂµã
 int16 Right_Up_Find=0;      //ÓÒÉÏµã
 int16 Left_Up_Find=0;       //×óÉÏµã
 //Ê®×Ö¡ü¡ü¡ü¡ü
-uint8 leftline_num;//×óÏßµãÊıÁ¿
-uint8 rightline_num;//ÓÒÏßµãÊıÁ¿
+//³µ×´Ì¬
+enum mark {
+    straight,    // Ö±µÀĞĞÊ»
+    crossroad,   // Ê®×ÖÂ·¿Ú
+    round_2,   // Èë»·²¹Ö±Ïß
+    round_3,   // Ô²»·²¹Ğ±Ïß£¨Î´Ê¹ÓÃ£©
+    round_4,   // Èë»·ĞĞÊ»
+    round_5,   // ×ó¹Õµã²¹Ğ±Ïß
+    round_6    // ³ö»·²¹Ö±Ïß
+};
+extern enum  mark carstatus_now;
+//ËøÁĞ
+extern int16 bailie_lock_crossroad;
+extern int16 bailieright_lock_round;
+
+//ÏßµãÓë¶ªÏß¡ı¡ı¡ı¡ı
+uint8 leftline_num;         //×óÏßµãÊıÁ¿
+uint8 rightline_num;        //ÓÒÏßµãÊıÁ¿
+
+#define left_lost   (MT9V03X_H-leftline_num)
+#define right_lost (MT9V03X_H-rightline_num)
+
+//ÏßµãÓë¶ªÏß¡ü¡ü¡ü¡ü
+
+//Ô²»·¡ı¡ı¡ı¡ı
+int16 right_down_guai   =0;            //ÓÒÏÂ¹Õµã
+int16 right_up_guai     =0;            //ÓÒÉÏ¹Õµã
+int16 left_down_guai    =0;            //×óÏÂ¹Õµã
+int16 left_up_guai      =0;            //×óÉÏ¹Õµã
+
+int16 left_budandiao       =0;     //×ó²»µ¥µ÷
+int16 right_budandiao      =0;     //ÓÒ²»µ¥µ÷
+//Ô²»·¡ü¡ü¡ü¡ü
+
+
 
 //²î±ÈºÍ¡ı¡ı¡ı¡ı
 int16 sar_thre = 17;//²î±ÈºÍãĞÖµ
@@ -166,7 +200,6 @@ int my_adapt_threshold(uint8 *image, uint16 col, uint16 row)   //×¢Òâ¼ÆËããĞÖµµÄÒ
     {
         pixelPro[i] = (float)pixelCount[i] / pixelSum;
     }
-    //±éÀú»Ò¶È¼¶[0,255]
     float w0, w1, u0tmp, u1tmp, u0, u1, u, deltaTmp, deltaMax = 0;
     w0 = w1 = u0tmp = u1tmp = u0 = u1 = u = deltaTmp = 0;
     for (j = 0; j < GrayScale; j++)
@@ -257,14 +290,35 @@ void image_boundary_process2(void)
     for(row = MT9V03X_H - 1; row >= 1; row--){
         //Ñ¡ÓÃÉÏÒ»ĞĞµÄÖĞµã×÷ÎªÏÂÒ»ĞĞ¼ÆËãÆğÊ¼µã£¬½ÚÊ¡ËÙ¶È£¬Í¬Ê±·ÀÖ¹ÍäµÀµÄ×óÓÒÁ½±ß¾ù³öÏÖÓë»­ÃæÒ»²à
         if(row != MT9V03X_H - 1){
-			if(centerline[row+1]==0)
-			{
-				start_col=(uint8)(MT9V03X_W / 2);
-			}
-            else 
-			{
-				start_col = centerline[row+1];//Ò»½×µÍÍ¨ÂË²¨£¬·ÀÖ¹³öÏÖÔëµãÓ°ÏìÏÂÒ»ĞĞµÄÆğÊ¼µã
-			}
+            
+            
+            if(carstatus_now==straight)
+            {			
+                if(centerline[row+1]==0)
+                {
+                    start_col=(uint8)(MT9V03X_W / 2);
+                }
+                else if(rightline[row+1]!=MT9V03X_W-1&&leftline[row+1]!=0)
+                {
+                    start_col=(rightline[row+1]+leftline[row+1])/2;
+                }
+                else
+                {
+                    start_col = centerline[row+1];//Ò»½×µÍÍ¨ÂË²¨£¬·ÀÖ¹³öÏÖÔëµãÓ°ÏìÏÂÒ»ĞĞµÄÆğÊ¼µã
+                }
+            }
+            else if(carstatus_now==crossroad)
+            {
+                start_col=bailie_lock_crossroad;
+              
+            }
+            else if(carstatus_now==round_4)
+            {
+                start_col=90;
+            }
+
+
+            
 		}
         else if(row == MT9V03X_H - 1){
             start_col = (uint8)(MT9V03X_W / 2);
@@ -279,31 +333,62 @@ void image_boundary_process2(void)
 
 
 //´ó½ò·¨¡ü¡ü¡ü¡ü¡ü¡ü¡ü¡ü¡ü¡ü
-
-void banmaxian_check(void)
+//°ßÂíÏß´¦ÀíºÍ±£»¤ÔÚÕâÀï
+void black_protect_check(void)
 {
     int16 sum =0;
-    for(int16 i=70;i>30;i--)
+    for(int16 i=70;i>20;i--)
     {
-        if(mt9v03x_image[ MT9V03X_H - 5][i]<120)
+        if(mt9v03x_image[ MT9V03X_H - 1][i]<150)
         {
             sum++;
         }
 
     }
-        for(int16 i=70;i<110;i++)
+        for(int16 i=70;i<120;i++)
     {
-        if(mt9v03x_image[ MT9V03X_H - 10][i]<120)
+        if(mt9v03x_image[ MT9V03X_H - 1][i]<150)
         {
-            sum++;
+            sum++; 
         }
 
     }
-            if (sum>80*0.35)
+            if (sum>100*0.8)
         {
             stop_flag1=true;
         }
 }
+void banmaxian_check(void)
+{
+
+    int16 sum =0;
+    bool black=0;
+    for(int16 i=0;i<MT9V03X_W;i++)
+    {
+        if(mt9v03x_image[ MT9V03X_H - 1][i]<60)
+        {
+            if(black==0)
+            {
+                black=1;
+                sum++;
+            }
+            
+        }
+        else
+        {
+            if(black==1)
+            {
+                black=0;
+            }
+        }
+    }
+    if(sum>=8)
+    {
+        stop_flag1=true;
+    }
+}
+
+
 /*
 ------------------------------------------------------------------------------------------------------------------
 º¯Êı¼ò½é      Êä³öÖĞµãÎ»ÖÃ£ºÕâÀïÊÇ´Óµ×ÏòÉÏÊıµÚËÄ¸ö
@@ -393,19 +478,17 @@ void Find_Down_Point(int16 start,int16 end)
         Right_Down_Find=0;
         Left_Down_Find=0;
     }
-    if(Right_Down_Find==74)
-    {
-            Right_Down_Find=0;
+//    if(Right_Down_Find==74)
+//    {
+//            Right_Down_Find=0;
 
-    }
-        if(Left_Down_Find==74)
-    {
-            Left_Down_Find=0;
+//    }
+//        if(Left_Down_Find==74)
+//    {
+//            Left_Down_Find=0;
 
-    }
-    printf("leftdownfind%d",Left_Down_Find);
-//    
-    printf("rightdownfind%d\n",Right_Down_Find);//
+//    }
+
 }
  
 /*-------------------------------------------------------------------------------------------------------------------
@@ -469,9 +552,7 @@ void Find_Up_Point(int16 start,int16 end)
         Right_Up_Find=0;
         Left_Up_Find=0;
     }
-    printf("leftupfind%d",Left_Up_Find);
     
-    printf("rightupfind%d\n",Right_Up_Find);//Ã»ÎÊÌâ
 }
 
 
@@ -601,7 +682,6 @@ int16 Find_Right_Down_Point(uint8 start,uint8 end)
 ±¸×¢ĞÅÏ¢     
 -------------------------------------------------------------------------------------------------------------------
 */
-//È·¶¨Á¬ĞøĞÔº¯Êı£¨ÓÒ²à£©
 int16 continuity_right(uint8 start,uint8 end)
 {
     int16 i;
@@ -630,7 +710,7 @@ int16 continuity_right(uint8 start,uint8 end)
     }
 //      printf("continuity_right%d,\n",continuity_change_flag);Ã»ÎÊÌâ
 
-    return continuity_change_flag-end-10;
+    return continuity_change_flag;
 }
 /*
 ------------------------------------------------------------------------------------------------------------------
@@ -641,7 +721,6 @@ int16 continuity_right(uint8 start,uint8 end)
 ±¸×¢ĞÅÏ¢     
 -------------------------------------------------------------------------------------------------------------------
 */
-//È·¶¨Á¬ĞøĞÔº¯Êı£¨×ó²à£©
 
 int16 continuity_left(uint8 start,uint8 end)
 {
@@ -671,51 +750,58 @@ int16 continuity_left(uint8 start,uint8 end)
 
     }
         printf("continuity_left%d,\n",continuity_change_flag);
-    return continuity_change_flag-end-10;
+    return continuity_change_flag;
 }
 //µ¥µ÷ĞÔ±ä»¯s
 int16 montonicity_right(uint8 start,uint8 end)
-{
+{            
+
     int16 i;
     int16 result=0;
-    int16 montonicity_add=0;//µ¥µ÷Ôö
-    int16 montonicity_sub=0;//µ¥µ÷¼õ
+
+            if(start<end)
+    {
+        uint8 t=start;
+        start=end;
+        end=t;
+    }
     if(start>=MT9V03X_H-5)//Êı×éÔ½½ç±£»¤
         start=MT9V03X_H-5;
     if(end<=5)
     {
         end=5;
     }
-        if(start<end)
-    {
-        uint8 t=start;
-        start=end;
-        end=t;
-    }
-    uint8 mark1last=0;//×óÔöÄ©Î²
-    uint8 mark2first=0;//ÓÒÔöÆğÊ¼
     for(i=start;i>=end;i--)
     {
-        if((rightline[i]-rightline[i-1])>0)//ÏòÉÏ×óÔöÁ¬ĞøĞÔãĞÖµÊÇ5£¬¿É¸ü¸Ä
-       {
-           montonicity_add++;
-           mark1last=i;
-       }
-        if((rightline[i]-rightline[i-1])<0)//ÏòÉÏÓÒÔö
-       {
-            montonicity_sub++;
-            if(mark2first==0){mark2first=i;}
-       }
 
-        if(montonicity_add>5&&montonicity_sub>5)
+        if(rightline[i]-rightline[i-1]<=0&&rightline[i-1]-rightline[i-2]<=0&&rightline[i-2]-rightline[i-3]<=0
+            &&rightline[i]-rightline[i+1]<=0&&rightline[i+1]-rightline[i+2]<=0&&rightline[i+2]-rightline[i+3]<=0&&
+        rightline[i]!=MT9V03X_W-1&&
+        rightline[i+1]!=MT9V03X_W-1&&
+        rightline[i-1]!=MT9V03X_W-1&&
+        rightline[i+2]!=MT9V03X_W-1&&
+        rightline[i-2]!=MT9V03X_W-1)
         {
+            result=i;
+        return result;
 
-            result= (mark1last+mark2first)/2;                                   //ÔÚi´¦µ¥µ÷ĞÔ¿ªÊ¼±ä»¯
         }
     }
-    return result;
+    return 0;
 
 }
+
+
+
+/*
+------------------------------------------------------------------------------------------------------------------
+ÒÔÏÂ¶¼ÊÇ²¹Ïß
+ÒÔÏÂ¶¼ÊÇ²¹Ïß
+ÒÔÏÂ¶¼ÊÇ²¹Ïß
+ÒÔÏÂ¶¼ÊÇ²¹Ïß
+ÒÔÏÂ¶¼ÊÇ²¹Ïß
+-------------------------------------------------------------------------------------------------------------------
+*/
 
 
 /*
@@ -738,7 +824,9 @@ void draw_Lline_k(int16 startx, int16 starty, int16 endy, float dx) {
     }
     for (int16 i = starty; i != endy; i += step) {
 
-        leftfollowline[i] = startx + (int16)((float)(i - starty) * dx );
+        int16 temp=startx + (int16)((float)(i - starty) * dx );   
+            leftfollowline[i] = temp;
+        
     }
 }
 /*
@@ -764,8 +852,8 @@ void draw_Rline_k(int16 startx, int16 starty, int16 endy, float dx) {
         return;
     }
     for (int16 i = starty; i != endy; i += step) {
-
-        rightfollowline[i] = startx + (int16)((float)(i - starty) * dx ); 
+        int16 temp=startx + (int16)((float)(i - starty) * dx );      
+        rightfollowline[i] = temp;
     }
 }
 /*

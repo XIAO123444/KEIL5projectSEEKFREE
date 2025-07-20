@@ -7,9 +7,13 @@
 #include "track.h"
 #include "photo_chuli.h"
 #include "buzzer.h"
+//白列锁定
+int16 bailie_lock_crossroad=MT9V03X_W/2;
+int16 bailieright_lock_round=3*MT9V03X_W/4;
 // 外部变量声明
+extern int32 forwardsight;
 extern int16 centerline[MT9V03X_H];      // 中心线数组（图像高度维度）
-extern int16 leftline[MT9V03X_H];       // 左边界线数组
+extern int16 leftline[MT9V03X_H];       // 左边界线数组 
 extern int16 rightline[MT9V03X_H];      // 右边界线数组
 extern uint8 pix_per_meter;             // 像素/米比例系数
 extern int16 rightfollowline[MT9V03X_H]; // 右边界跟踪线
@@ -23,22 +27,21 @@ extern int16 Right_Up_Find;    // 右上边界点行号
 extern int16 Left_Up_Find;     // 左上边界点行号
 
 // 圆环标志
-int16 right_down_guai = 0;    // 右下拐点标志（用于圆环检测）
-int16 right_budandiao=0;
-int16 right_up_guai=0;
-int16 left_up_guai = 0;       // 左上拐点标志（保留未使用）
+extern int16 right_budandiao;
+float right_dxbudandiao;
 
-
+extern uint8 leftline_num;         //左线点数量
+extern uint8 rightline_num;        //右线点数量
 int16 output_middle2(void) {
-    return centerline2[MT9V03X_H-60 ];
-}
+    return centerline2[forwardsight  ];
+} 
  
+int32 encodercounter=0;
 
 
 enum mark {
     straight,    // 直道行驶
     crossroad,   // 十字路口
-    round_1,   // 圆环预识别
     round_2,   // 入环补直线
     round_3,   // 圆环补斜线（未使用）
     round_4,   // 入环行驶
@@ -49,26 +52,56 @@ enum mark carstatus_now = straight;  // 当前车辆状态
 
 
 void centerline2_change(void) {
-    for(int16 i=5; i<MT9V03X_H-5; i++) {
-        centerline2[i] = (rightfollowline[i] + leftfollowline[i]) / 2;
+    for(int16 i=MT9V03X_H-5; i>1; i--) {
+//        if(rightfollowline[i]==MT9V03X_W-1&&leftfollowline[i]==0)
+//        {
+//               centerline2[i] =(centerline2[i+1]+centerline2[i+2]+centerline2[i+3]+centerline2[i+4])/4;
+//        }
+//        else
+//        {
+//            centerline2[i] = (rightfollowline[i] + leftfollowline[i]) / 2;
+//        }        
+                centerline2[i] = (rightfollowline[i] + leftfollowline[i]) / 2;
+
     }
 }
 
 
 void element_check(void) {    
-    // 更新左右跟踪线
+    ips200_show_int(0,280,carstatus_now,1);
+    // 更新左右跟踪线 
     memcpy(leftfollowline, leftline, sizeof(leftline));
     memcpy(rightfollowline, rightline, sizeof(rightline));
     centerline2_change();
+//	printf("leftpoint%d",leftline_num);
+//printf("rightpoint%d",rightline_num);
     printf("carstatus%d\n",carstatus_now);
     /*---------- 直道状态检测 ----------*/
     if(carstatus_now == straight) {
+        Find_Up_Point(MT9V03X_H-15, 30);             //找上拐点
+        Find_Down_Point(MT9V03X_H-15, 20);             //找上拐点
+		right_budandiao=montonicity_right(Right_Down_Find,5);
+
+
+
+		//圆环↓↓↓↓↓↓↓
+		//圆环↓↓↓↓↓↓↓
+		//圆环↓↓↓↓↓↓↓
+		//圆环↓↓↓↓↓↓↓
+        if(continuity_left(5, MT9V03X_H-5)==0 &&continuity_right(5, MT9V03X_H-5)&& Right_Down_Find!=0&&right_budandiao>10&&leftline_num>70)
+        {
+        carstatus_now = round_2;
+        return;
+        }
+
+		//十字路口↓↓↓↓↓↓↓↓
+		//十字路口↓↓↓↓↓↓↓↓		
+		//十字路口↓↓↓↓↓↓↓↓
         // 十字路口检测条件：左右边界均不连续
-        if(continuity_left(30, MT9V03X_H-5) > 0 && 
+        if(continuity_left(30, MT9V03X_H-5)  && 
            continuity_right(30, MT9V03X_H-5) > 0) {
             
             // 查找边界突变点（从上往下扫描）
-            Find_Up_Point(MT9V03X_H-5, 10);
             
             // 未找到突变点则退出
             if(Left_Up_Find == 0 && Right_Up_Find == 0) return;
@@ -81,25 +114,23 @@ void element_check(void) {
             }
         }
         
-        // 圆环预检测条件：左边界不连续,右下存在拐点,右上存在不单调点
-        if(continuity_left(5, MT9V03X_H-5) > 0 && Find_Right_Down_Point(MT9V03X_H-5, 5)&&montonicity_right(5,MT9V03X_H-5)) {
-            carstatus_now = round_1;
-            return;
-        }
+
     }
 
     /*---------- 十字路口状态处理 ----------*/
     if(carstatus_now == crossroad) {
+        int start_down_point=5;
 //        // 重新扫描边界突变点（从下往上）
         Find_Up_Point(5, MT9V03X_H-5);
 //        
 //        // 确定扫描起点（取左右突变点的较高位置）
-        int start_down_point = (Right_Up_Find < Left_Up_Find) ? Right_Up_Find : Left_Up_Find;
+        start_down_point = (Right_Up_Find < Left_Up_Find) ? Right_Up_Find : Left_Up_Find;
 //        
 //        // 查找下半段边界点
         Find_Down_Point(MT9V03X_H-6, start_down_point);
 //        
-//        // 校验下点位置有效性（必须低于上点）
+//        // 校验下点位置有效性（必须低于上点
+//        printf("Right_Up_Find%d,Left_Up_Find%d,Right_Down_Find%d,Right_Down_Find%d\n",Right_Up_Find,Left_Up_Find,Right_Down_Find,Right_Down_Find);
         if(Left_Down_Find <= Left_Up_Find) Left_Down_Find = 0;
         if(Right_Down_Find <= Right_Up_Find) Right_Down_Find = 0;
 
@@ -135,7 +166,7 @@ void element_check(void) {
         centerline2_change();
 
         // 突变点全部失效时返回直道状态
-        if(Right_Up_Find == 0 && Left_Up_Find == 0) {
+        if((Right_Up_Find == 0 && Left_Up_Find == 0)||(rightline_num>50||leftline_num>50)) {
             carstatus_now = straight;
             return;
         }
@@ -143,23 +174,53 @@ void element_check(void) {
     }
 
     /*---------- 圆环预识别状态处理 ----------*/
-//    if(carstatus_now == round_1) 
-//    {
-//        right_down_guai = Find_Right_Down_Point(MT9V03X_H-5, 80);
-//        int zhongduandianzuo = continuity_left(MT9V03X_H-5, 80);
-//        int bulianxudian = montonicity_right(MT9V03X_H-5, 80);
-//        
-//        // 圆环确认条件：左边界中断+右下拐点+右边界非单调
-//        if(zhongduandianzuo == 0 && right_down_guai && bulianxudian) {
-//            // 右边界拐点拟合
-//            add_Rline_k(rightfollowline[bulianxudian], bulianxudian, 
-//                       right_down_guai, rightfollowline[right_down_guai]);
-//        }
-//        if(right_down_guai==0)
-//        {
-//             
-//        }
-//    }
+    if(carstatus_now == round_2) //补直线
+    {
+		Find_Down_Point(MT9V03X_H-5, 10);
+		Find_Up_Point(Right_Down_Find,5);
+		right_budandiao=montonicity_right(Right_Down_Find,5);
+        //编码器法
+        if(Right_Down_Find>=75&&right_budandiao&&Right_Up_Find)//右下角点消失，右不单调点存在，右上点存在
+		{
+			carstatus_now=round_3;
+			return;
+		}
+		if(Right_Down_Find&right_budandiao)
+		{
+			add_Rline_k(rightline[Right_Down_Find],Right_Down_Find,right_budandiao,rightline[right_budandiao]);
+		}
+		centerline2_change();
+    }
+	if(carstatus_now==round_3)//右下角点消失
+	{
+		Find_Up_Point(MT9V03X_H-5, 5);
+		right_budandiao=montonicity_right(MT9V03X_H-5,5);
+		
+		printf("\n rightupfind%d",Right_Up_Find);
+		printf("\n right_budandiao%d",right_budandiao);
+        		if(right_budandiao==0)//不单调点消失了
+		{
+			carstatus_now=round_4;
+            return;
+		}
+		if(Right_Up_Find&&right_budandiao)//右上顶点和不单调点补斜率
+		{
+			add_Rline_k(rightline[right_budandiao],right_budandiao,MT9V03X_H-5,MT9V03X_W-1);
+		}
+		centerline2_change();
+
+		
+	}
+	if(carstatus_now==round_4)
+	{
+		Find_Up_Point(MT9V03X_H-5, 5);
+        printf("LEFT_up_find%d",Left_Up_Find);
+        printf("RIghT_up_find%d\n",Right_Up_Find);
+
+	}
+    		centerline2_change();
+
+
     
 } 
 

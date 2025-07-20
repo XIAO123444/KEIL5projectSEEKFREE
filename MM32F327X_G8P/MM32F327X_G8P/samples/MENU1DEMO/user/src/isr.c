@@ -202,7 +202,7 @@ void TIM6_IRQHandler (void)
 	encoder_clear_count(TIM4_ENCODER);
     turn1=40 *S_PID_CAL();
 //    turn1=0;
-    int outpute =pid_V_comon( 100 );
+    int outpute =pid_V_comon( speed );
     int dutyr =outpute+turn1;
     int dutyl = outpute-turn1;
     

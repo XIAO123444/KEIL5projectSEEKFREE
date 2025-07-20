@@ -45,13 +45,13 @@ int S_PID_CAL()
     {
         intgral= -18 ;
     }
-    if(result>100)
+    if(result>120)
     {
-        result=100;
+        result=120;
     }
-    if(result<-100)
+    if(result<-120)
     {
-        result=-100;
+        result=-120;
 
     }
     Lasterror=error;

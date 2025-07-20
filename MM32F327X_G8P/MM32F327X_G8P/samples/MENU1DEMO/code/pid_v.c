@@ -97,13 +97,13 @@ int pid_V_comon(int target)
     }
 
     int result=(int)(PID_V.p*ERR+PID_V.i*i1+PID_V.d*d1);
-        if(result>=4000)
+        if(result>=5000)
     {
-        result=4000;
+        result=5000;
     }    
-        if(result<=-4000)
+        if(result<=-5000)
     {
-        result=-4000;
+        result=-5000;
     }
     return result;
 }

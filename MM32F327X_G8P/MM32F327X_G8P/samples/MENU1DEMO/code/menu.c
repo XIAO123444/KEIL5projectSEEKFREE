@@ -16,20 +16,22 @@ int input;
 extern int status;
 extern uint16 w_step,h_step,K,limit;
 extern bool save_flag;
+int32 speed;
+int32 forwardsight;
 
 
 typedef struct 
 {
-    unsigned char priority;
-    char str[20];
-    uint16 x;
-    uint16 y;
-    float value_f;
-    int value_i;
-    char int_float;
-    void (*Operate_DOWN)();
-    void (*Operate_UP)();
-    void (*Operate_default)();
+    unsigned char priority;             //页面优先级
+    char str[20];                       //名字
+    uint16 x;                           //显示横坐标
+    uint16 y;                           //显示纵坐标
+    float value_f;                      //浮点数据
+    int value_i;                        //整型数据
+    char int_float;                     //浮点整型标志位
+    void (*Operate_DOWN)();             //减函数
+    void (*Operate_UP)();               //增函数
+    void (*Operate_default)();          //默认执行函数
 
 }MENU;
 
@@ -41,14 +43,30 @@ void start_car(void)
 {
     start_flag=true;
 }
-int speed=50;
 void addspeed()
 {
-    speed+=100;
+    speed+=10;
 }
 void subspeed()
 {
-    speed-=100;
+    speed-=10;
+}
+void addforwardsight()
+{
+    forwardsight+=1;
+}
+void subforwardsight()
+{
+    forwardsight-=1;
+    if(forwardsight<0)
+    {
+        forwardsight=0;
+    }
+}
+void car_init(void)
+{
+    speed=0;
+    forwardsight=50;
 }
 
 MENU menu[]={
@@ -59,7 +77,6 @@ MENU menu[]={
 //        {2,"i_max",  ips200_x_max-10 * 7, 80,  0,0,1,  pid_sub_i_max,       pid_add_i_max,      nfunc},  
 //        {2,"d_max",  ips200_x_max-10 * 7, 100, 0,0,1,  pid_sub_d_max,       pid_add_d_max,      nfunc},  
 //        {2,"output", ips200_x_max-10 * 7, 120, 0,0,1,  pid_sub_output_max,  pid_add_output_max, nfunc},
-        {2,"speed",ips200_x_max-10 * 7 ,80 ,0,0,1, subspeed,           addspeed,          nfunc },
 
         {2,"reset",  ips200_x_max-10 * 7, 140, 0,0,1,  pid_vparam_init, nfunc , nfunc},
         {2,"encoder_right"  ,ips200_x_max-10*7,160,0,0,0,                nfunc,nfunc,nfunc},
@@ -76,6 +93,11 @@ MENU menu[]={
         {2,"v_right"        ,ips200_x_max -10*7,40,0,0,1,                nfunc,nfunc,nfunc},
         {2,"encoder_right"  ,ips200_x_max-10*7,60,0,0,0,                nfunc,nfunc,nfunc},
         {2,"encoder_left"   ,ips200_x_max-10*7,80,0,0,0,                start_car,nfunc,nfunc},
+        {2,"speed",          ips200_x_max-10 * 7 ,100 ,0,0,0, subspeed,           addspeed,          nfunc },
+        {2,"forwardsight",   ips200_x_max-10 * 7 ,120 ,0,0,0, subforwardsight,           addforwardsight,          nfunc },
+        {2,"reset_C",     ips200_x_max-10 * 7, 140, 0,0,1,  car_init, nfunc , nfunc},
+
+
     {1,"START_THECAR",0,80,0,0,0,Encoder_Init,nfunc,nfunc},
 
 
@@ -178,9 +200,20 @@ void update(void)
                 menu[i].value_i=pid_ptr1->outputmax;
 
             }
-                        if(strcmp(menu[i].str, "outputmin")==0)
+            if(strcmp(menu[i].str, "outputmin")==0)
             {
                 menu[i].value_i=-pid_ptr1->outputmax;
+
+            }
+            
+            if(strcmp(menu[i].str, "speed")==0)
+            {
+                menu[i].value_i=speed;
+
+            }
+           if(strcmp(menu[i].str, "forwardsight")==0)
+            {
+                menu[i].value_i=forwardsight;
 
             }
 
@@ -261,9 +294,7 @@ void output(void)
             } 
         }
     }
-    if(strcmp(menu[p_nearby].str,"graph_param")==0)
-    {
-    }
+
 }
 
 /*
