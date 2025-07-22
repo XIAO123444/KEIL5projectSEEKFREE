@@ -38,6 +38,7 @@
 #include "motor.h"
 #include "steer_pid.h"
 #include "track.h"
+#include "screen.h" 
 extern uint32 key1_count;
 extern uint32 key2_count;
 extern uint32 key3_count;
@@ -58,6 +59,7 @@ extern int32 encoder2;
 extern bool save_flag;          //布尔类型flash存储标志
 extern int speed;
 int turn1 =0;
+int encodercounter1=0;
 extern uint16 centerline2[MT9V03X_H];
 //-------------------------------------------------------------------------------------------------------------------
 // 函数简介     TIM1 的定时器更新中断服务函数 启动 .s 文件定义 不允许修改函数名称
@@ -200,6 +202,7 @@ void TIM6_IRQHandler (void)
 	encoder_clear_count(TIM3_ENCODER);
 	encoder2=encoder_get_count(TIM4_ENCODER);
 	encoder_clear_count(TIM4_ENCODER);
+	encodercounter1+=(encoder2+encoder1);
     turn1=40 *S_PID_CAL();
 //    turn1=0;
     int outpute =pid_V_comon( speed );
@@ -218,7 +221,32 @@ void TIM6_IRQHandler (void)
 void TIM7_IRQHandler (void)
 {
     // 此处编写用户代码
+    if(mt9v03x_finish_flag)
+        { 
+            image_threshold=my_adapt_threshold(mt9v03x_image[0], MT9V03X_W, MT9V03X_H);//图像获取阈值
+             set_b_imagine(image_threshold);
+            image_boundary_process2();
+            if(current_state==1)
+            {
+                
+                 ips200_show_gray_image(0,120,(const uint8 *)dis_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);       //图像处理可注释掉
+                element_check();
+                show_line(); 
+            }                                                                   
+			if( encodercounter1>7000)
+			{	
+				banmaxian_check();//斑马线
+			}
+            black_protect_check();//出界保护
+            if(stop_flag1)
+            {
+            pit_disable(TIM6_PIT);
+            motor_run(0,0 );//右电机，左电机
 
+            }
+            mt9v03x_finish_flag = 0;
+            
+        } 
     // 此处编写用户代码
     TIM7->SR &= ~TIM7->SR;                                                      // 清空中断状态
 }

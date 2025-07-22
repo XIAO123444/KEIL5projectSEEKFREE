@@ -26,9 +26,12 @@ void BUZZ_init(void)
 备注信息     无
 -------------------------------------------------------------------------------------------------------------------
 */
+void BUZZ_START(void)
+{
+    count_beep=5;
+}
 void BUZZ_cycle(void)
 {
-	count_beep=8;
     while(count_beep)
     {
         gpio_set_level(BUZZ,GPIO_HIGH);

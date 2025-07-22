@@ -12,7 +12,6 @@ extern int16 rightline[MT9V03X_H];
 extern int16 rightfollowline[MT9V03X_H];
 extern int16 leftfollowline[MT9V03X_H];
 extern int16 centerline2[MT9V03X_H];
- 
 void show_line(void){
 
     for(int16 i = 0; i < MT9V03X_H-1; i ++){

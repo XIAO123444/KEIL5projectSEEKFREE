@@ -15,10 +15,14 @@ extern int32 forwardsight;
 extern int16 centerline[MT9V03X_H];      // 中心线数组（图像高度维度）
 extern int16 leftline[MT9V03X_H];       // 左边界线数组 
 extern int16 rightline[MT9V03X_H];      // 右边界线数组
-extern uint8 pix_per_meter;             // 像素/米比例系数
 extern int16 rightfollowline[MT9V03X_H]; // 右边界跟踪线
 extern int16 leftfollowline[MT9V03X_H];  // 左边界跟踪线
+extern uint8 pix_per_meter;             // 像素/米比例系数
 int16 centerline2[MT9V03X_H];           // 二次计算的中心线
+
+extern int16 leftlostpoint[2];   //左丢线数和左丢线点0为丢线数，1为丢线点
+extern int16 rightlostpoint[2];  //右丢线数和左丢线点0为丢线数，1为丢线点
+extern int16 bothlostpoint[2];   //同时丢线数和左丢线点0为丢线数，1为丢线
 
 // 边界点检测结果
 extern int16 Right_Down_Find;  // 右下边界点行号
@@ -75,22 +79,27 @@ void element_check(void) {
     centerline2_change();
 //	printf("leftpoint%d",leftline_num);
 //printf("rightpoint%d",rightline_num);
+printf("leftpointlast%d",leftlostpoint[0]);
+printf("rightpointlast%d",rightlostpoint[0]);
+printf("bothpointlast%d",bothlostpoint[0]);  
+
     printf("carstatus%d\n",carstatus_now);
     /*---------- 直道状态检测 ----------*/
     if(carstatus_now == straight) {
         Find_Up_Point(MT9V03X_H-15, 30);             //找上拐点
         Find_Down_Point(MT9V03X_H-15, 20);             //找上拐点
 		right_budandiao=montonicity_right(Right_Down_Find,5);
-
-
-
 		//圆环↓↓↓↓↓↓↓
 		//圆环↓↓↓↓↓↓↓
 		//圆环↓↓↓↓↓↓↓
 		//圆环↓↓↓↓↓↓↓
-        if(continuity_left(5, MT9V03X_H-5)==0 &&continuity_right(5, MT9V03X_H-5)&& Right_Down_Find!=0&&right_budandiao>10&&leftline_num>70)
+        if(continuity_left(5, MT9V03X_H-5)==0 &&continuity_right(5, MT9V03X_H-5)
+            && Right_Down_Find!=0&&right_budandiao>10
+            &&leftline_num>70&&bothlostpoint[0]<10&&rightlostpoint[0]>30
+        &&rightlostpoint[0]<70)
         {
         carstatus_now = round_2;
+        BUZZ_START();
         return;
         }
 
@@ -99,7 +108,8 @@ void element_check(void) {
 		//十字路口↓↓↓↓↓↓↓↓
         // 十字路口检测条件：左右边界均不连续
         if(continuity_left(30, MT9V03X_H-5)  && 
-           continuity_right(30, MT9V03X_H-5) > 0) {
+           continuity_right(30, MT9V03X_H-5) > 0 ) 
+        {
             
             // 查找边界突变点（从上往下扫描）
             
@@ -109,7 +119,7 @@ void element_check(void) {
             // 同时检测到左右突变点则判定为十字路口
             if(Left_Up_Find != 0 && Right_Up_Find != 0) {
                 carstatus_now = crossroad;
-                BUZZ_cycle();
+                BUZZ_START();
                 return;
             }
         }
@@ -166,7 +176,7 @@ void element_check(void) {
         centerline2_change();
 
         // 突变点全部失效时返回直道状态
-        if((Right_Up_Find == 0 && Left_Up_Find == 0)||(rightline_num>50||leftline_num>50)) {
+        if((Right_Up_Find == 0 && Left_Up_Find == 0)||(rightline_num>50||leftline_num>50)||(rightline_num<10||leftline_num<10)) {
             carstatus_now = straight;
             return;
         }
@@ -216,7 +226,11 @@ void element_check(void) {
 		Find_Up_Point(MT9V03X_H-5, 5);
         printf("LEFT_up_find%d",Left_Up_Find);
         printf("RIghT_up_find%d\n",Right_Up_Find);
-            		centerline2_change();
+        if(Left_Up_Find)
+        {
+            
+        }
+        centerline2_change();
 
 
 	}
@@ -226,7 +240,8 @@ void element_check(void) {
 } 
 
 
-void choose_tracktype(void) {
+void choose_tracktype(void) 
+{
     // 待实现功能：根据赛道特征选择跟踪策略
     // track_type = TRACK_LEFT;
 }

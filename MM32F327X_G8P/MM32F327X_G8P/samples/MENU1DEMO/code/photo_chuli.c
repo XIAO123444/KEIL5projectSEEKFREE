@@ -12,6 +12,15 @@ int16 leftline[MT9V03X_H];
 int16 rightline[MT9V03X_H];
 int16 rightfollowline[MT9V03X_H];
 int16 leftfollowline[MT9V03X_H];
+
+int16 leftlostpoint[2]={0,0};   //左丢线数和左丢线点0为丢线数，1为丢线点
+int16 rightlostpoint[2]={0,0};  //右丢线数和左丢线点0为丢线数，1为丢线点
+int16 bothlostpoint[2]={0,0};   //同时丢线数和左丢线点0为丢线数，1为丢线点
+
+uint16 left_lost_flag[MT9V03X_H];//左丢线数组
+uint16 right_lost_flag[MT9V03X_H];//右丢线数组
+uint16 both_lost_flag[MT9V03X_H];//同时丢线数组
+
 //十字↓↓↓↓
 int16 Right_Down_Find=0;    //右下点
 int16 Left_Down_Find=0;     //左下点
@@ -37,8 +46,6 @@ extern int16 bailieright_lock_round;
 uint8 leftline_num;         //左线点数量
 uint8 rightline_num;        //右线点数量
 
-#define left_lost   (MT9V03X_H-leftline_num)
-#define right_lost (MT9V03X_H-rightline_num)
 
 //线点与丢线↑↑↑↑
 
@@ -257,6 +264,16 @@ void difsum_left1(uint8 y,uint8 x)
 			leftline_num ++;//左线点计数+
 			break;//找到边界后退出
 		}
+		else
+		{
+			leftlostpoint[0]++;
+			left_lost_flag[y]=1;
+			if(leftlostpoint[1]==0)
+			{
+				leftlostpoint[1]=y;
+				
+			}
+		}
 
 	}
 }
@@ -274,6 +291,16 @@ void difsum_right1(uint8 y,uint8 x)
 			rightline[y] = col ;
 			rightline_num ++;//右边线点计数+
 			break;//找到边界后退出
+		}
+		else
+		{
+			rightlostpoint[0]++;
+			right_lost_flag[y]=1;
+
+			if(rightlostpoint[1]==0)
+			{
+				rightlostpoint[1]=y;
+			}
 		}
 
 	}
@@ -327,6 +354,18 @@ void image_boundary_process2(void)
         //逐行作差比和 
         difsum_left1(row,start_col);
         difsum_right1(row,start_col); 
+		for(int16 i=MT9V03X_H-3;i>3;i--)
+		{
+			if(right_lost_flag[i]==1&&left_lost_flag[i]==1)
+			{
+				both_lost_flag[i]=1;
+				bothlostpoint[0]++;
+				if(bothlostpoint[1]==0)
+				{
+					bothlostpoint[1]=i;
+				}
+			}
+		}
         centerline[row] = 0.5 * (rightline[row] + leftline[row]);
     }
 }
@@ -358,34 +397,28 @@ void black_protect_check(void)
             stop_flag1=true;
         }
 }
+
+
+
 void banmaxian_check(void)
 {
-
+	int16 count=0;
     int16 sum =0;
     bool black=0;
-    for(int16 i=0;i<MT9V03X_W;i++)
-    {
-        if(mt9v03x_image[ MT9V03X_H - 1][i]<60)
-        {
-            if(black==0)
+    for(int i=MT9V03X_H-1;i>=MT9V03X_H-3;i--)
             {
-                black=1;
-                sum++;
+                for(int j=0;j<=MT9V03X_W-1-3;j++)
+                {
+                    if(dis_image[i][j]==255&&dis_image[i][j+1]==0&&dis_image[i][j+2]==0)
+                    {
+                        count++;
+                    }
+                }
+                if(count>=10)//如果黑色计数大于等于40，认为是斑马线
+                {
+                    stop_flag1=true;
+                }
             }
-            
-        }
-        else
-        {
-            if(black==1)
-            {
-                black=0;
-            }
-        }
-    }
-    if(sum>=8)
-    {
-        stop_flag1=true;
-    }
 }
 
 
@@ -940,7 +973,7 @@ void lenthen_Right_bondarise(int16 start)
     if(start>MT9V03X_H-7){start=MT9V03X_H-7;}
     float dx=(float)(rightline[start]-rightline[start-7])/7;
     dx2_right_average(dx);
-    float dx_average=(dx2[0]+dx2[1]+dx2[2]+dx2[3]+dx2[4])/5;
+    float dx_average=(dx2[0]+dx2[1 ]+dx2[2]+dx2[3]+dx2[4])/5;
     for(int16 i=start;i<MT9V03X_H-1;i++)
     {
         if((float)rightline[start]+dx_average*(i-start)>MT9V03X_W-5||(float)rightline[start]+dx_average*(float)(i-start)<0)

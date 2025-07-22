@@ -74,16 +74,18 @@
 #include "steer_pid.h"
 #include "buzzer.h"
 bool save_flag=false;
-bool stop_flag1;
+bool stop_flag1;                            //停止标志符
+extern bool start_flag;                     //发车标识符
+
 extern uint8 leftline_num;//左线点数量
 extern uint8 rightline_num;//右线点数量
 extern struct pid_v PID_V;                  //pid_V
 extern struct steer_pid S_PID;
-extern bool start_flag;
 extern int current_state;
 extern int speed; 
 extern int forwardsight;
-extern uint8 dis_image[MT9V03X_H][MT9V03X_W];
+extern int encodercounter1;
+
 void all_init(void)
 {
     clock_init(SYSTEM_CLOCK_120M);//必须最先开启时钟
@@ -93,7 +95,6 @@ void all_init(void)
     flash_init();    
     Key_init();                     //按键初始化
     BUZZ_init();
-//    Encoder_Init();                 //编码器初始化
     motor_init();
     S_PID_CAL_init();
     while(1)//摄像头... 
@@ -104,6 +105,9 @@ void all_init(void)
         }
         else
         {
+            pit_ms_init(TIM7_PIT, 5);                                                   //硬件定时，周期5ms
+            interrupt_set_priority(TIM7_IRQn, 1);
+
             break;
         }
         system_delay_ms(50);
@@ -159,37 +163,15 @@ void flash_save(void)
 
 int main (void)
 {
-    int image_threshold;
     all_init();
     stop_flag1=false;
     while(1)
     { 
-        Key_Scan();
-        Menu_control();
-        flash_save();
-        if(mt9v03x_finish_flag)
-        { 
-            image_threshold=my_adapt_threshold(mt9v03x_image[0], MT9V03X_W, MT9V03X_H);//图像获取阈值
-             set_b_imagine(image_threshold);
-            image_boundary_process2();
-            if(current_state==1)
-            {
-                
-                 ips200_show_gray_image(0,120,(const uint8 *)dis_image,MT9V03X_W, MT9V03X_H,MT9V03X_W, MT9V03X_H,0);       //图像处理可注释掉
-                element_check();
-                show_line(); 
-            }
-            banmaxian_check();//斑马线和出界保护
-            black_protect_check();
-            if(stop_flag1)
-            {
-            pit_disable(TIM6_PIT);
-            motor_run(0,0 );//右电机，左电机
-
-            }
-            mt9v03x_finish_flag = 0;
-            
-        } 
+        Key_Scan();             //按键扫描
+        Menu_control();         //菜单控制
+        flash_save();           //flash闪存
+		BUZZ_cycle();           //蜂鸣器循环
+        
 
     }
         

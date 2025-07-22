@@ -45,7 +45,7 @@ void start_car(void)
 }
 void addspeed()
 {
-    speed+=10;
+    speed+=5;
 }
 void subspeed()
 {

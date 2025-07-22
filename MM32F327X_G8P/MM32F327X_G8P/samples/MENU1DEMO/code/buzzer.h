@@ -5,6 +5,7 @@
 
 void BUZZ_init(void);
 void BUZZ_cycle(void);
+void BUZZ_START(void);
 
 
 
